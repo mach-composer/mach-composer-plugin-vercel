@@ -3,8 +3,9 @@ package internal
 import (
 	"fmt"
 
-	"github.com/labd/mach-composer/internal/plugins/mcsdk"
-	"github.com/labd/mach-composer/internal/plugins/shared"
+	"github.com/mach-composer/mach-composer-plugin-sdk/helpers"
+	"github.com/mach-composer/mach-composer-plugin-sdk/plugin"
+	"github.com/mach-composer/mach-composer-plugin-sdk/schema"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -16,12 +17,12 @@ type VercelPlugin struct {
 	enabled      bool
 }
 
-func NewVercelPlugin() mcsdk.MachComposerPlugin {
+func NewVercelPlugin() schema.MachComposerPlugin {
 	state := &VercelPlugin{
 		provider:    "0.6.2", // Provider version of `vercel/vercel`
 		siteConfigs: map[string]*VercelConfig{},
 	}
-	return mcsdk.NewPlugin(&mcsdk.PluginSchema{
+	return plugin.NewPlugin(&schema.PluginSchema{
 		Identifier: "vercel",
 		Configure:  state.Configure,
 		IsEnabled:  state.IsEnabled,
@@ -86,7 +87,7 @@ func (p *VercelPlugin) RenderTerraformProviders(site string) (string, error) {
 			source = "vercel/vercel"
 			version = "%s"
 		}
-	`, shared.VersionConstraint(p.provider))
+	`, helpers.VersionConstraint(p.provider))
 
 	return result, nil
 }
@@ -111,10 +112,10 @@ func (p *VercelPlugin) RenderTerraformResources(site string) (string, error) {
 		}
 	`
 
-	return shared.RenderGoTemplate(template, cfg)
+	return helpers.RenderGoTemplate(template, cfg)
 }
 
-func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (*mcsdk.ComponentSnippets, error) {
+func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (*schema.ComponentSchema, error) {
 	cfg := p.getSiteConfig(site)
 	if cfg == nil {
 		return nil, nil
@@ -124,12 +125,12 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 		vercel_team_id = {{ .TeamID|printf "%q" }}
 		manual_production_deployment = {{ .ProjectConfig.ManualProductionDeployment }}
 	`
-	vars, err := shared.RenderGoTemplate(template, cfg)
+	vars, err := helpers.RenderGoTemplate(template, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	result := &mcsdk.ComponentSnippets{
+	result := &schema.ComponentSchema{
 		Variables: vars,
 	}
 
