@@ -106,13 +106,13 @@ func (p *VercelPlugin) RenderTerraformResources(site string) (string, error) {
 
 	fmt.Println(cfg)
 
-	template := `
+	resourceTemplate := `
 		provider "vercel" {
 			api_token = {{ .APIToken|printf "%q" }}
 		}
 	`
 
-	return helpers.RenderGoTemplate(template, cfg)
+	return helpers.RenderGoTemplate(resourceTemplate, cfg)
 }
 
 func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (*schema.ComponentSchema, error) {
@@ -124,7 +124,15 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 	template := `
 		vercel_team_id = {{ .TeamID|printf "%q" }}
 		manual_production_deployment = {{ .ProjectConfig.ManualProductionDeployment }}
+		environment_variables = [{{range .ProjectConfig.EnvironmentVariables }}
+			{
+				name = {{ .Name|printf "%q" }}
+				value = {{ .Value|printf "%q" }}
+				environment = {{ .DefaultEnvironments }}
+			},{{end}}
+		]
 	`
+
 	vars, err := helpers.RenderGoTemplate(template, cfg)
 	if err != nil {
 		return nil, err

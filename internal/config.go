@@ -1,5 +1,9 @@
 package internal
 
+import (
+	"github.com/google/go-cmp/cmp"
+)
+
 type VercelConfig struct {
 	TeamID        string        `mapstructure:"team_id"`
 	APIToken      string        `mapstructure:"api_token"`
@@ -7,7 +11,14 @@ type VercelConfig struct {
 }
 
 type ProjectConfig struct {
-	ManualProductionDeployment bool `mapstructure:"manual_production_deployment"`
+	ManualProductionDeployment bool                         `mapstructure:"manual_production_deployment"`
+	EnvironmentVariables       []ProjectEnvironmentVariable `mapstructure:"environment_variables"`
+}
+
+type ProjectEnvironmentVariable struct {
+	Name        string    `mapstructure:"name"`
+	Value       string    `mapstructure:"value"`
+	Environment [3]string `mapstructure:"environment"`
 }
 
 func (c *VercelConfig) extendConfig(o *VercelConfig) *VercelConfig {
@@ -24,11 +35,16 @@ func (c *VercelConfig) extendConfig(o *VercelConfig) *VercelConfig {
 		if c.APIToken != "" {
 			cfg.APIToken = c.APIToken
 		}
-		if c.ProjectConfig != (ProjectConfig{}) {
+		if !cmp.Equal(c.ProjectConfig, ProjectConfig{}) {
 			cfg.ProjectConfig = c.ProjectConfig
 		}
 		return cfg
 	}
 
 	return c
+}
+
+func (c *ProjectEnvironmentVariable) DefaultEnvironments() string {
+	// Ugly but getting proper templated joined strings is hard in Go :(
+	return "[\"development\", \"preview\", \"production\"]"
 }
