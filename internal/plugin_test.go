@@ -40,4 +40,10 @@ func TestSetVercelConfig(t *testing.T) {
 	assert.Contains(t, component.Variables, "vercel_team_id = \"test-team\"")
 	assert.Contains(t, component.Variables, "manual_production_deployment = true")
 
+	// Test environment variables
+
+	// Test default response
+	assert.Contains(t, component.Variables, "environment = [\"development\", \"preview\", \"production\"]")
+	// Test custom environment variables list
+	assert.Contains(t, component.Variables, "environment = [\"production\", \"preview\"]")
 }

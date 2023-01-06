@@ -2,17 +2,10 @@ package internal
 
 import (
 	"bytes"
-	"reflect"
 	"text/template"
 
 	"github.com/google/go-cmp/cmp"
 )
-
-var templateFunctions = template.FuncMap{
-	"last": func(x int, a interface{}) bool {
-		return x == reflect.ValueOf(a).Len()-1
-	},
-}
 
 type VercelConfig struct {
 	TeamID        string        `mapstructure:"team_id"`
