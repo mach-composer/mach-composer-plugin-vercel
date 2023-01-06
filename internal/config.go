@@ -45,8 +45,8 @@ type ProjectEnvironmentVariable struct {
 	Environment []string `mapstructure:"environment"`
 }
 
-// Returns a HCL-friendly version of the list of environments which are encapsulated by
-// quotes and are comma separated
+// Returns a HCL-friendly version of the list of environments which are
+// encapsulated by quotes and are comma separated
 func (c *ProjectEnvironmentVariable) DisplayEnvironments() string {
 	return helpers.SerializeToHCL("environment", c.Environment)
 }
