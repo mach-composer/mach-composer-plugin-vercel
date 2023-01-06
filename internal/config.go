@@ -1,24 +1,23 @@
 package internal
 
 import (
+	"bytes"
+	"reflect"
+	"text/template"
+
 	"github.com/google/go-cmp/cmp"
 )
+
+var templateFunctions = template.FuncMap{
+	"last": func(x int, a interface{}) bool {
+		return x == reflect.ValueOf(a).Len()-1
+	},
+}
 
 type VercelConfig struct {
 	TeamID        string        `mapstructure:"team_id"`
 	APIToken      string        `mapstructure:"api_token"`
 	ProjectConfig ProjectConfig `mapstructure:"project_config"`
-}
-
-type ProjectConfig struct {
-	ManualProductionDeployment bool                         `mapstructure:"manual_production_deployment"`
-	EnvironmentVariables       []ProjectEnvironmentVariable `mapstructure:"environment_variables"`
-}
-
-type ProjectEnvironmentVariable struct {
-	Name        string    `mapstructure:"name"`
-	Value       string    `mapstructure:"value"`
-	Environment [3]string `mapstructure:"environment"`
 }
 
 func (c *VercelConfig) extendConfig(o *VercelConfig) *VercelConfig {
@@ -42,6 +41,33 @@ func (c *VercelConfig) extendConfig(o *VercelConfig) *VercelConfig {
 	}
 
 	return c
+}
+
+type ProjectConfig struct {
+	ManualProductionDeployment bool                         `mapstructure:"manual_production_deployment"`
+	EnvironmentVariables       []ProjectEnvironmentVariable `mapstructure:"environment_variables"`
+}
+
+type ProjectEnvironmentVariable struct {
+	Name        string   `mapstructure:"name"`
+	Value       string   `mapstructure:"value"`
+	Environment []string `mapstructure:"environment"`
+}
+
+// Returns a HCL-friendly version of the list of environments which are encapsulated by
+// quotes and are comma separated
+func (c *ProjectEnvironmentVariable) DisplayEnvironments() (string, error) {
+	tpl := `[{{ range $i, $e := . }}{{if $i}}, {{end}}{{ if last $i $}}{{ end}}"{{$e}}"{{end}}]`
+	t := template.Must(template.New("template").Funcs(templateFunctions).Parse(tpl))
+
+	var content bytes.Buffer
+	err := t.Execute(&content, c.Environment)
+
+	if err != nil {
+		return "", err
+	}
+
+	return content.String(), nil
 }
 
 func (c *ProjectEnvironmentVariable) DefaultEnvironments() string {

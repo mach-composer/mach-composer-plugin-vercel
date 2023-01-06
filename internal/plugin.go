@@ -128,7 +128,7 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 			{
 				name = {{ .Name|printf "%q" }}
 				value = {{ .Value|printf "%q" }}
-				environment = {{ .DefaultEnvironments }}
+				environment = {{ $length := len .Environment }}{{ if eq $length 0 }}{{ .DefaultEnvironments }}{{ else }}{{ .DisplayEnvironments }}{{ end }}
 			},{{end}}
 		]
 	`
