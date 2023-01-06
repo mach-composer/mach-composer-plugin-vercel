@@ -98,7 +98,16 @@ func (p *VercelPlugin) getSiteConfig(site string) *VercelConfig {
 		cfg = &VercelConfig{}
 	}
 
-	return cfg.extendConfig(p.globalConfig)
+	cfg = cfg.extendConfig(p.globalConfig)
+
+	// Set default Environment values for environment variables
+	for i := range cfg.ProjectConfig.EnvironmentVariables {
+		if len(cfg.ProjectConfig.EnvironmentVariables[i].Environment) == 0 {
+			cfg.ProjectConfig.EnvironmentVariables[i].Environment = []string{"development", "preview", "production"}
+		}
+	}
+
+	return cfg
 }
 
 func (p *VercelPlugin) RenderTerraformResources(site string) (string, error) {
@@ -126,7 +135,7 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 			{
 				key = {{ .Key|printf "%q" }}
 				value = {{ .Value|printf "%q" }}
-				environment = {{ $length := len .Environment }}{{ if eq $length 0 }}{{ .DefaultEnvironments }}{{ else }}{{ .DisplayEnvironments }}{{ end }}
+				{{ .DisplayEnvironments }}
 			},{{end}}
 		]
 	`
