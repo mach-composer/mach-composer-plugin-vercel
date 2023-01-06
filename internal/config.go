@@ -1,10 +1,8 @@
 package internal
 
 import (
-	"bytes"
-	"text/template"
-
 	"github.com/google/go-cmp/cmp"
+	"github.com/mach-composer/mach-composer-plugin-helpers/helpers"
 )
 
 type VercelConfig struct {
@@ -47,23 +45,18 @@ type ProjectEnvironmentVariable struct {
 	Environment []string `mapstructure:"environment"`
 }
 
-// Returns a HCL-friendly version of the list of environments which are encapsulated by
-// quotes and are comma separated
-func (c *ProjectEnvironmentVariable) DisplayEnvironments() (string, error) {
-	tpl := `[{{ range $i, $e := . }}{{if $i}}, {{end}}{{ if last $i $}}{{ end}}"{{$e}}"{{end}}]`
-	t := template.Must(template.New("template").Funcs(templateFunctions).Parse(tpl))
-
-	var content bytes.Buffer
-	err := t.Execute(&content, c.Environment)
-
-	if err != nil {
-		return "", err
+func (c *ProjectEnvironmentVariable) fillDefaultEnvironments() *ProjectEnvironmentVariable {
+	if len(c.Environment) == 0 {
+		c.Environment = []string{"development", "preview", "production"}
 	}
 
-	return content.String(), nil
+	return c
 }
 
-func (c *ProjectEnvironmentVariable) DefaultEnvironments() string {
-	// Ugly but getting proper templated joined strings is hard in Go :(
-	return "[\"development\", \"preview\", \"production\"]"
+// Returns a HCL-friendly version of the list of environments which are encapsulated by
+// quotes and are comma separated
+func (c *ProjectEnvironmentVariable) DisplayEnvironments() string {
+	hcl := helpers.SerializeToHCL("environment", c.Environment)
+
+	return hcl
 }
