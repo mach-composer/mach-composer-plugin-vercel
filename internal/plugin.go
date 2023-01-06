@@ -100,7 +100,8 @@ func (p *VercelPlugin) getSiteConfig(site string) *VercelConfig {
 
 	cfg = cfg.extendConfig(p.globalConfig)
 
-	// Set default Environment values for environment variables
+	// Default behavior for Vercel is to output to all environments
+	// Set this as default field unless manually filled
 	for i := range cfg.ProjectConfig.EnvironmentVariables {
 		if len(cfg.ProjectConfig.EnvironmentVariables[i].Environment) == 0 {
 			cfg.ProjectConfig.EnvironmentVariables[i].Environment = []string{"development", "preview", "production"}
