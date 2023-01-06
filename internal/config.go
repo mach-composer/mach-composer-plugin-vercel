@@ -42,7 +42,7 @@ type ProjectConfig struct {
 }
 
 type ProjectEnvironmentVariable struct {
-	Name        string   `mapstructure:"name"`
+	Key         string   `mapstructure:"key"`
 	Value       string   `mapstructure:"value"`
 	Environment []string `mapstructure:"environment"`
 }
