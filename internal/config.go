@@ -45,18 +45,8 @@ type ProjectEnvironmentVariable struct {
 	Environment []string `mapstructure:"environment"`
 }
 
-func (c *ProjectEnvironmentVariable) fillDefaultEnvironments() *ProjectEnvironmentVariable {
-	if len(c.Environment) == 0 {
-		c.Environment = []string{"development", "preview", "production"}
-	}
-
-	return c
-}
-
 // Returns a HCL-friendly version of the list of environments which are encapsulated by
 // quotes and are comma separated
 func (c *ProjectEnvironmentVariable) DisplayEnvironments() string {
-	hcl := helpers.SerializeToHCL("environment", c.Environment)
-
-	return hcl
+	return helpers.SerializeToHCL("environment", c.Environment)
 }
