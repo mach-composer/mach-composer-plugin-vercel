@@ -15,7 +15,7 @@ func TestSetVercelConfig(t *testing.T) {
 			"manual_production_deployment": true,
 			"environment_variables": []map[string]any{
 				{"name": "TEST_ENVIRONMENT_VARIABLE", "value": "testing"},
-				{"name": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production"}},
+				{"name": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production", "preview"}},
 			},
 		},
 	}
