@@ -97,14 +97,12 @@ func (p *VercelPlugin) getSiteConfig(site string) *VercelConfig {
 	if !ok {
 		cfg = &VercelConfig{}
 	}
-	fmt.Println(cfg)
+
 	return cfg.extendConfig(p.globalConfig)
 }
 
 func (p *VercelPlugin) RenderTerraformResources(site string) (string, error) {
 	cfg := p.getSiteConfig(site)
-
-	fmt.Println(cfg)
 
 	resourceTemplate := `
 		provider "vercel" {
@@ -126,7 +124,7 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 		manual_production_deployment = {{ .ProjectConfig.ManualProductionDeployment }}
 		environment_variables = [{{range .ProjectConfig.EnvironmentVariables }}
 			{
-				name = {{ .Name|printf "%q" }}
+				key = {{ .Key|printf "%q" }}
 				value = {{ .Value|printf "%q" }}
 				environment = {{ $length := len .Environment }}{{ if eq $length 0 }}{{ .DefaultEnvironments }}{{ else }}{{ .DisplayEnvironments }}{{ end }}
 			},{{end}}

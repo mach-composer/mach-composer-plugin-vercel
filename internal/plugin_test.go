@@ -14,8 +14,8 @@ func TestSetVercelConfig(t *testing.T) {
 		"project_config": map[string]any{
 			"manual_production_deployment": true,
 			"environment_variables": []map[string]any{
-				{"name": "TEST_ENVIRONMENT_VARIABLE", "value": "testing"},
-				{"name": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production", "preview"}},
+				{"key": "TEST_ENVIRONMENT_VARIABLE", "value": "testing"},
+				{"key": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production", "preview"}},
 			},
 		},
 	}
@@ -35,7 +35,6 @@ func TestSetVercelConfig(t *testing.T) {
 	assert.Contains(t, result, "api_token = \"test-token\"")
 
 	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
-	t.Log(component.Variables)
 	require.NoError(t, err)
 	assert.Contains(t, component.Variables, "vercel_team_id = \"test-team\"")
 	assert.Contains(t, component.Variables, "manual_production_deployment = true")
