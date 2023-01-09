@@ -53,7 +53,7 @@ Then you can set up your terraform resources with the given variables:
 ```hcl
 resource "vercel_deployment" "manual_production_deployment" {
   count      = var.manual_production_deployment ? 1 : 0
-  project_id = vercel_project.sportsdirect_my.id
+  project_id = vercel_project.my_project.id
   team_id    = var.vercel_team_id
   ref        = var.component_version
   production = true
