@@ -46,3 +46,43 @@ func TestSetVercelConfig(t *testing.T) {
 	// Test custom environment variables list
 	assert.Contains(t, component.Variables, "environment = [\"production\", \"preview\"]")
 }
+
+func TestInheritEnvironmentVariables(t *testing.T) {
+	globalData := map[string]any{
+		"team_id":   "test-team",
+		"api_token": "test-token",
+		"project_config": map[string]any{
+			"manual_production_deployment": true,
+			"environment_variables": []map[string]any{
+				{"key": "TEST_ENVIRONMENT_VARIABLE", "value": "testing"},
+			},
+		},
+	}
+
+	siteData := map[string]any{
+		"team_id":   "test-team",
+		"api_token": "test-token",
+		"project_config": map[string]any{
+			"manual_production_deployment": true,
+			"environment_variables": []map[string]any{
+				{"key": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production", "preview"}},
+			},
+		},
+	}
+
+	plugin := NewVercelPlugin()
+
+	err := plugin.SetGlobalConfig(globalData)
+	require.NoError(t, err)
+
+	err = plugin.SetSiteConfig("my-site", siteData)
+	require.NoError(t, err)
+
+	// Test whether environment variables get extended
+	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+	require.NoError(t, err)
+
+	assert.Contains(t, component.Variables, "environment = [\"development\", \"preview\", \"production\"]")
+	assert.Contains(t, component.Variables, "environment = [\"production\", \"preview\"]")
+
+}

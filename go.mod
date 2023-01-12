@@ -3,10 +3,12 @@ module github.com/mach-composer/mach-composer-plugin-vercel
 go 1.19
 
 require (
+	github.com/google/go-cmp v0.5.8
 	github.com/mach-composer/mach-composer-plugin-helpers v0.0.1
 	github.com/mach-composer/mach-composer-plugin-sdk v0.0.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/stretchr/testify v1.8.1
+	golang.org/x/exp v0.0.0-20230108222341-4b8118a2686a
 )
 
 require (
@@ -16,7 +18,6 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/flosch/pongo2/v5 v5.0.0 // indirect
 	github.com/golang/protobuf v1.3.4 // indirect
-	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/hashicorp/go-hclog v1.3.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.6 // indirect
@@ -31,7 +32,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/zclconf/go-cty v1.12.1 // indirect
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55 // indirect
 	google.golang.org/grpc v1.27.1 // indirect
