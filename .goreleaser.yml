@@ -1,22 +1,15 @@
-
-
 project_name: mach-composer-plugin-vercel
 
 builds:
   - id: "mach-composer-plugin"
     main: ./main.go
-    binary: "bin/{{ .ProjectName }}"
+    binary: "{{ .ProjectName }}_v{{ .Version }}"
     flags:
       - -trimpath
-      - -tags=netgo
     env:
       - CGO_ENABLED=0
-    asmflags:
-      - all=-trimpath={{.Env.GOPATH}}
-    gcflags:
-      - all=-trimpath={{.Env.GOPATH}}
-    ldflags: |
-      -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
+    ldflags:
+      - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
     goos:
       - windows
       - linux
@@ -40,7 +33,7 @@ changelog:
 
 archives:
   - id: "mach-composer-plugin"
-    name_template: "{{ .ProjectName }}-{{.Version}}-{{.Os}}-{{.Arch}}{{ if .Arm }}v{{.Arm }}{{ end }}"
-    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: zip
     files:
       - LICENSE
