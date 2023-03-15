@@ -22,6 +22,7 @@ global:
     team_id: "team"
     project_config:
         manual_production_deployment: false # Variable to help with setting up manual deployments in Terraform
+        serverless_function_region: "fra1"
         environment_variables:
             - key: CUSTOM_GLOBAL_ENVIRONMENT_VARIABLE
               value: custom
@@ -33,7 +34,12 @@ sites:
         - name: my-component
           vercel: # Override defaults on component level
             project_config:
+                name: "my-vercel-project"
+                framework: "nextjs"
                 manual_production_deployment: true
+                git_repository:
+                  type: "github"
+                  repo: "mach-composer/my-vercel-project"
                 environment_variables:
                     - key: CUSTOM_SITE_SPECIFIC_ENVIRONMENT_VARIABLE
                       value: custom

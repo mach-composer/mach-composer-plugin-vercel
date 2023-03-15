@@ -40,8 +40,66 @@ func (c *VercelConfig) extendConfig(o *VercelConfig) *VercelConfig {
 }
 
 type ProjectConfig struct {
+	Name                       string                       `mapstructure:"name"`
+	Framework                  string                       `mapstructure:"framework"`
 	ManualProductionDeployment bool                         `mapstructure:"manual_production_deployment"`
+	ServerlessFunctionRegion   string                       `mapstructure:"serverless_function_region"`
 	EnvironmentVariables       []ProjectEnvironmentVariable `mapstructure:"environment_variables"`
+	GitRepository              GitRepository                `mapstructure:"git_repository"`
+	BuildCommand               string                       `mapstructure:"build_command"`
+	RootDirectory              string                       `mapstructure:"root_directory"`
+}
+
+func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
+	if o != nil && o != (&ProjectConfig{}) {
+		cfg := &ProjectConfig{
+			ManualProductionDeployment: o.ManualProductionDeployment,
+			EnvironmentVariables:       o.EnvironmentVariables,
+		}
+
+		if c.Name != o.Name {
+			cfg.Name = c.Name
+		}
+
+		if c.Framework != o.Framework {
+			cfg.Framework = c.Framework
+		}
+
+		if c.ServerlessFunctionRegion != o.ServerlessFunctionRegion {
+			cfg.ServerlessFunctionRegion = c.ServerlessFunctionRegion
+		}
+
+		if c.BuildCommand != o.BuildCommand {
+			cfg.BuildCommand = c.BuildCommand
+		}
+
+		if c.RootDirectory != o.RootDirectory {
+			cfg.RootDirectory = c.RootDirectory
+		}
+
+		if c.ManualProductionDeployment != o.ManualProductionDeployment {
+			cfg.ManualProductionDeployment = c.ManualProductionDeployment
+		}
+
+		if c.GitRepository != o.GitRepository {
+			cfg.GitRepository = c.GitRepository
+		}
+
+		if !slices.EqualFunc(c.EnvironmentVariables, o.EnvironmentVariables, EqualEnvironmentVariables) {
+			// Append missing environment variables
+			cfg.EnvironmentVariables = append(cfg.EnvironmentVariables, c.EnvironmentVariables...)
+			// TODO: Update environment variables that exist in both configs with values of the site config
+
+		}
+		return cfg
+	}
+
+	return c
+}
+
+type GitRepository struct {
+	Type string `mapstructure:"type"`
+	Repo string `mapstructure:"repo"`
 }
 
 type ProjectEnvironmentVariable struct {
@@ -58,27 +116,4 @@ func (c *ProjectEnvironmentVariable) DisplayEnvironments() string {
 
 func EqualEnvironmentVariables(c, o ProjectEnvironmentVariable) bool {
 	return c.Key == o.Key && c.Value == o.Value && slices.Equal(c.Environment, o.Environment)
-}
-
-func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
-	if o != nil && o != (&ProjectConfig{}) {
-		cfg := &ProjectConfig{
-			ManualProductionDeployment: o.ManualProductionDeployment,
-			EnvironmentVariables:       o.EnvironmentVariables,
-		}
-
-		if c.ManualProductionDeployment != o.ManualProductionDeployment {
-			cfg.ManualProductionDeployment = c.ManualProductionDeployment
-		}
-
-		if !slices.EqualFunc(c.EnvironmentVariables, o.EnvironmentVariables, EqualEnvironmentVariables) {
-			// Append missing environment variables
-			cfg.EnvironmentVariables = append(cfg.EnvironmentVariables, c.EnvironmentVariables...)
-			// TODO: Update environment variables that exist in both configs with values of the site config
-
-		}
-		return cfg
-	}
-
-	return c
 }
