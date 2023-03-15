@@ -137,6 +137,10 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 		root_directory = {{ .ProjectConfig.RootDirectory|printf "%q" }}
 		serverless_function_region = {{ .ProjectConfig.ServerlessFunctionRegion|printf "%q" }}
 		manual_production_deployment = {{ .ProjectConfig.ManualProductionDeployment }}
+		git_repository = {
+			type = {{ .ProjectConfig.GitRepository.Type|printf "%q" }}
+			repo = {{ .ProjectConfig.GitRepository.Repo|printf "%q" }}
+		}
 		environment_variables = [{{range .ProjectConfig.EnvironmentVariables }}
 			{
 				key = {{ .Key|printf "%q" }}
