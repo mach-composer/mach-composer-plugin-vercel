@@ -18,6 +18,10 @@ func TestSetVercelConfig(t *testing.T) {
 			"build_command":                "next build",
 			"root_directory":               "./my-project",
 			"manual_production_deployment": true,
+			"git_repository": map[string]any{
+				"type": "github",
+				"repo": "mach-composer/my-project",
+			},
 			"environment_variables": []map[string]any{
 				{"key": "TEST_ENVIRONMENT_VARIABLE", "value": "testing"},
 				{"key": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production", "preview"}},
@@ -48,6 +52,8 @@ func TestSetVercelConfig(t *testing.T) {
 	assert.Contains(t, component.Variables, "root_directory = \"./my-project\"")
 	assert.Contains(t, component.Variables, "vercel_team_id = \"test-team\"")
 	assert.Contains(t, component.Variables, "manual_production_deployment = true")
+	assert.Contains(t, component.Variables, "type = \"github\"")
+	assert.Contains(t, component.Variables, "repo = \"mach-composer/my-project\"")
 
 	// Test environment variables
 
