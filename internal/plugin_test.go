@@ -63,7 +63,7 @@ func TestSetVercelConfig(t *testing.T) {
 	assert.Contains(t, component.Variables, "environment = [\"production\", \"preview\"]")
 }
 
-func TestInheritEnvironmentVariables(t *testing.T) {
+func TestInheritance(t *testing.T) {
 	globalData := map[string]any{
 		"team_id":   "test-team",
 		"api_token": "test-token",
@@ -77,10 +77,10 @@ func TestInheritEnvironmentVariables(t *testing.T) {
 	}
 
 	siteData := map[string]any{
-		"team_id":   "test-team",
-		"api_token": "test-token",
+		"team_id":   "test-team-override",
+		"api_token": "test-token-override",
 		"project_config": map[string]any{
-			"manual_production_deployment": true,
+			"manual_production_deployment": false,
 			"environment_variables": []map[string]any{
 				{"key": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production", "preview"}},
 				{"key": "TEST_EXTEND_VARIABLE", "value": "testing", "environment": []string{"production", "preview", "development"}},
@@ -96,10 +96,17 @@ func TestInheritEnvironmentVariables(t *testing.T) {
 	err = plugin.SetSiteConfig("my-site", siteData)
 	require.NoError(t, err)
 
-	// Test whether environment variables get extended
+	result, err := plugin.RenderTerraformResources("my-site")
+	require.NoError(t, err)
+	assert.Contains(t, result, "api_token = \"test-token-override\"")
+
 	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
 	require.NoError(t, err)
 
+	// Test overriding fields
+	assert.Contains(t, component.Variables, "vercel_team_id = \"test-team-override\"")
+
+	// Test whether environment variables get extended
 	assert.Contains(t, component.Variables, "environment = [\"development\", \"preview\", \"production\"]")
 	assert.Contains(t, component.Variables, "environment = [\"production\", \"preview\"]")
 
