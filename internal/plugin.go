@@ -131,6 +131,11 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 
 	template := `
 		vercel_team_id = {{ .TeamID|printf "%q" }}
+		name = {{ .ProjectConfig.Name|printf "%q" }}
+		framework = {{ .ProjectConfig.Framework|printf "%q" }}
+		build_command = {{ .ProjectConfig.BuildCommand|printf "%q" }}
+		root_directory = {{ .ProjectConfig.RootDirectory|printf "%q" }}
+		serverless_function_region = {{ .ProjectConfig.ServerlessFunctionRegion|printf "%q" }}
 		manual_production_deployment = {{ .ProjectConfig.ManualProductionDeployment }}
 		environment_variables = [{{range .ProjectConfig.EnvironmentVariables }}
 			{

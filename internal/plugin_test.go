@@ -12,6 +12,11 @@ func TestSetVercelConfig(t *testing.T) {
 		"team_id":   "test-team",
 		"api_token": "test-token",
 		"project_config": map[string]any{
+			"name":                         "test-project",
+			"framework":                    "nextjs",
+			"serverless_function_region":   "iad1",
+			"build_command":                "next build",
+			"root_directory":               "./my-project",
 			"manual_production_deployment": true,
 			"environment_variables": []map[string]any{
 				{"key": "TEST_ENVIRONMENT_VARIABLE", "value": "testing"},
@@ -36,6 +41,11 @@ func TestSetVercelConfig(t *testing.T) {
 
 	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
 	require.NoError(t, err)
+	assert.Contains(t, component.Variables, "name = \"test-project\"")
+	assert.Contains(t, component.Variables, "framework = \"nextjs\"")
+	assert.Contains(t, component.Variables, "serverless_function_region = \"iad1\"")
+	assert.Contains(t, component.Variables, "build_command = \"next build\"")
+	assert.Contains(t, component.Variables, "root_directory = \"./my-project\"")
 	assert.Contains(t, component.Variables, "vercel_team_id = \"test-team\"")
 	assert.Contains(t, component.Variables, "manual_production_deployment = true")
 
