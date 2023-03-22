@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "description": "Site Vercel configuration",
+  "properties": {
+    "api_token": {
+      "type": "string"
+    },
+    "team_id": {
+      "type": "string"
+    },
+    "project_config": {
+      "type": "object",
+      "properties": {
+        "serverless_function_region": "string"
+      }
+    }
+  }
+}

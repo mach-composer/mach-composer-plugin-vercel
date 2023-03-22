@@ -19,13 +19,14 @@ type VercelPlugin struct {
 
 func NewVercelPlugin() schema.MachComposerPlugin {
 	state := &VercelPlugin{
-		provider:    "0.6.2", // Provider version of `vercel/vercel`
+		provider:    "0.11.4", // Provider version of `vercel/vercel`
 		siteConfigs: map[string]*VercelConfig{},
 	}
 	return plugin.NewPlugin(&schema.PluginSchema{
-		Identifier: "vercel",
-		Configure:  state.Configure,
-		IsEnabled:  state.IsEnabled,
+		Identifier:          "vercel",
+		Configure:           state.Configure,
+		IsEnabled:           func() bool { return state.enabled },
+		GetValidationSchema: state.GetValidationSchema,
 
 		SetGlobalConfig: state.SetGlobalConfig,
 		SetSiteConfig:   state.SetSiteConfig,
@@ -45,10 +46,6 @@ func (p *VercelPlugin) Configure(environment string, provider string) error {
 	return nil
 }
 
-func (p *VercelPlugin) IsEnabled() bool {
-	return p.enabled
-}
-
 func (p *VercelPlugin) SetGlobalConfig(data map[string]any) error {
 	cfg := VercelConfig{}
 
@@ -59,6 +56,11 @@ func (p *VercelPlugin) SetGlobalConfig(data map[string]any) error {
 	p.enabled = true
 
 	return nil
+}
+
+func (p *VercelPlugin) GetValidationSchema() (*schema.ValidationSchema, error) {
+	result := getSchema()
+	return result, nil
 }
 
 func (p *VercelPlugin) SetSiteConfig(site string, data map[string]any) error {
