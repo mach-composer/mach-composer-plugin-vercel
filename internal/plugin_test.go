@@ -23,7 +23,7 @@ func TestSetVercelConfig(t *testing.T) {
 				"repo": "mach-composer/my-project",
 			},
 			"environment_variables": []map[string]any{
-				{"key": "TEST_ENVIRONMENT_VARIABLE", "value": "testing"},
+				{"key": "TEST_ENVIRONMENT_VARIABLE", "value": "testing", "environment": []string{}},
 				{"key": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production", "preview"}},
 			},
 		},
