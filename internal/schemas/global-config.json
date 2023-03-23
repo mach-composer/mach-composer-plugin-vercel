@@ -11,7 +11,56 @@
     "project_config": {
       "type": "object",
       "properties": {
-        "serverless_function_region": "string"
+        "name": {
+          "type": "string"
+        },
+        "framework": {
+          "type": "string"
+        },
+        "manual_production_deployment": {
+          "type": "boolean"
+        },
+
+        "serverless_function_region": {
+          "type": "string"
+        },
+        "environment_variables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "environment": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "git_repository": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "repo": {
+              "type": "string"
+            }
+          }
+        },
+        "build_command": {
+          "type": "string"
+        },
+        "root_directory": {
+          "type": "string"
+        }
       }
     }
   }
