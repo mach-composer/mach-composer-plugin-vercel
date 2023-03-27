@@ -60,12 +60,10 @@ func (p *VercelPlugin) SetGlobalConfig(data map[string]any) error {
 
 func (p *VercelPlugin) GetValidationSchema() (*schema.ValidationSchema, error) {
 	result := getSchema()
-	fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 	return result, nil
 }
 
 func (p *VercelPlugin) SetSiteConfig(site string, data map[string]any) error {
-	fmt.Println("Do we even get here?")
 	cfg := VercelConfig{}
 	if err := mapstructure.Decode(data, &cfg); err != nil {
 		return err
