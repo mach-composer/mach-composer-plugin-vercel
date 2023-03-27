@@ -7,7 +7,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type Interface interface{}
+
 func TestSetVercelConfig(t *testing.T) {
+	// All of the below env variables code is used to bypass gojsonschema's
+	// inability to cast this to a []map[string]interface{}.
+	environmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_ENVIRONMENT_VARIABLE", Value: "testing", Environment: []string{}},
+		{Key: "TEST_ENVIRONMENT_VARIABLE_2", Value: "testing", Environment: []string{"production", "preview"}},
+	}
+
+	variables := make([]interface{}, len(environmentVariables))
+	for i, s := range environmentVariables {
+		variables[i] = s
+	}
+
 	data := map[string]any{
 		"team_id":   "test-team",
 		"api_token": "test-token",
@@ -22,10 +36,7 @@ func TestSetVercelConfig(t *testing.T) {
 				"type": "github",
 				"repo": "mach-composer/my-project",
 			},
-			"environment_variables": []map[string]any{
-				{"key": "TEST_ENVIRONMENT_VARIABLE", "value": "testing", "environment": []string{}},
-				{"key": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production", "preview"}},
-			},
+			"environment_variables": variables,
 		},
 	}
 
@@ -64,16 +75,30 @@ func TestSetVercelConfig(t *testing.T) {
 }
 
 func TestInheritance(t *testing.T) {
+	globalEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_ENVIRONMENT_VARIABLE", Value: "testing", Environment: []string{}},
+		{Key: "TEST_EXTEND_VARIABLE", Value: "test", Environment: []string{"production"}},
+	}
+	globalVariables := make([]interface{}, len(globalEnvironmentVariables))
+	for i, s := range globalEnvironmentVariables {
+		globalVariables[i] = s
+	}
 	globalData := map[string]any{
 		"team_id":   "test-team",
 		"api_token": "test-token",
 		"project_config": map[string]any{
 			"manual_production_deployment": true,
-			"environment_variables": []map[string]any{
-				{"key": "TEST_ENVIRONMENT_VARIABLE", "value": "testing"},
-				{"key": "TEST_EXTEND_VARIABLE", "value": "test", "environment": []string{"production"}},
-			},
+			"environment_variables":        globalVariables,
 		},
+	}
+
+	siteEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_ENVIRONMENT_VARIABLE_2", Value: "testing", Environment: []string{"production", "preview"}},
+		{Key: "TEST_EXTEND_VARIABLE", Value: "testing", Environment: []string{"production", "preview", "development"}},
+	}
+	siteVariables := make([]interface{}, len(siteEnvironmentVariables))
+	for i, s := range siteEnvironmentVariables {
+		siteVariables[i] = s
 	}
 
 	siteData := map[string]any{
@@ -81,10 +106,7 @@ func TestInheritance(t *testing.T) {
 		"api_token": "test-token-override",
 		"project_config": map[string]any{
 			"manual_production_deployment": false,
-			"environment_variables": []map[string]any{
-				{"key": "TEST_ENVIRONMENT_VARIABLE_2", "value": "testing", "environment": []string{"production", "preview"}},
-				{"key": "TEST_EXTEND_VARIABLE", "value": "testing", "environment": []string{"production", "preview", "development"}},
-			},
+			"environment_variables":        siteVariables,
 		},
 	}
 
@@ -114,15 +136,28 @@ func TestInheritance(t *testing.T) {
 }
 
 func TestExtendEnvironmentVariables(t *testing.T) {
+	globalEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_EXTEND_VARIABLE", Value: "test", Environment: []string{"production"}},
+	}
+	globalVariables := make([]interface{}, len(globalEnvironmentVariables))
+	for i, s := range globalEnvironmentVariables {
+		globalVariables[i] = s
+	}
 	globalData := map[string]any{
 		"team_id":   "test-team",
 		"api_token": "test-token",
 		"project_config": map[string]any{
 			"manual_production_deployment": true,
-			"environment_variables": []map[string]any{
-				{"key": "TEST_EXTEND_VARIABLE", "value": "test", "environment": []string{"production"}},
-			},
+			"environment_variables":        globalVariables,
 		},
+	}
+
+	siteEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_EXTEND_VARIABLE", Value: "testing", Environment: []string{"production", "preview", "development"}},
+	}
+	siteVariables := make([]interface{}, len(siteEnvironmentVariables))
+	for i, s := range siteEnvironmentVariables {
+		siteVariables[i] = s
 	}
 
 	siteData := map[string]any{
@@ -130,9 +165,7 @@ func TestExtendEnvironmentVariables(t *testing.T) {
 		"api_token": "test-token",
 		"project_config": map[string]any{
 			"manual_production_deployment": true,
-			"environment_variables": []map[string]any{
-				{"key": "TEST_EXTEND_VARIABLE", "value": "testing", "environment": []string{"production", "preview", "development"}},
-			},
+			"environment_variables":        siteVariables,
 		},
 	}
 
