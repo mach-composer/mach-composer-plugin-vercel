@@ -10,11 +10,12 @@ import (
 )
 
 type VercelPlugin struct {
-	environment  string
-	provider     string
-	globalConfig *VercelConfig
-	siteConfigs  map[string]*VercelConfig
-	enabled      bool
+	environment          string
+	provider             string
+	globalConfig         *VercelConfig
+	siteConfigs          map[string]*VercelConfig
+	siteComponentConfigs map[string]map[string]*VercelConfig
+	enabled              bool
 }
 
 func NewVercelPlugin() schema.MachComposerPlugin {
@@ -28,8 +29,9 @@ func NewVercelPlugin() schema.MachComposerPlugin {
 		IsEnabled:           func() bool { return state.enabled },
 		GetValidationSchema: state.GetValidationSchema,
 
-		SetGlobalConfig: state.SetGlobalConfig,
-		SetSiteConfig:   state.SetSiteConfig,
+		SetGlobalConfig:        state.SetGlobalConfig,
+		SetSiteConfig:          state.SetSiteConfig,
+		SetSiteComponentConfig: state.SetSiteComponentConfig,
 
 		// Renders
 		RenderTerraformProviders: state.RenderTerraformProviders,
@@ -68,12 +70,25 @@ func (p *VercelPlugin) SetSiteConfig(site string, data map[string]any) error {
 	if err := mapstructure.Decode(data, &cfg); err != nil {
 		return err
 	}
-	test := make([]ProjectEnvironmentVariable, 0, len(cfg.ProjectConfig.EnvironmentVariables))
-	for _, m := range cfg.ProjectConfig.EnvironmentVariables {
-		test = append(test, m)
-	}
-	cfg.ProjectConfig.EnvironmentVariables = test
 	p.siteConfigs[site] = &cfg
+	p.enabled = true
+	return nil
+}
+
+// Set config for a combination of site and component.
+func (p *VercelPlugin) SetSiteComponentConfig(site string, component string, data map[string]any) error {
+	cfg := VercelConfig{}
+	if err := mapstructure.Decode(data, &cfg); err != nil {
+		return err
+	}
+	if p.siteComponentConfigs == nil {
+		p.siteComponentConfigs = make(map[string]map[string]*VercelConfig)
+	}
+	if p.siteComponentConfigs[site] == nil {
+		p.siteComponentConfigs[site] = make(map[string]*VercelConfig)
+	}
+
+	p.siteComponentConfigs[site][component] = &cfg
 	p.enabled = true
 	return nil
 }
@@ -83,7 +98,7 @@ func (p *VercelPlugin) RenderTerraformStateBackend(site string) (string, error) 
 }
 
 func (p *VercelPlugin) RenderTerraformProviders(site string) (string, error) {
-	cfg := p.getSiteConfig(site)
+	cfg := p.getConfig(site, "")
 
 	if cfg == nil {
 		return "", nil
@@ -99,13 +114,38 @@ func (p *VercelPlugin) RenderTerraformProviders(site string) (string, error) {
 	return result, nil
 }
 
-func (p *VercelPlugin) getSiteConfig(site string) *VercelConfig {
-	cfg, ok := p.siteConfigs[site]
+func (p *VercelPlugin) getComponentConfig(site string, component string) (*VercelConfig, error) {
+	cfg, ok := p.siteComponentConfigs[site][component]
 	if !ok {
-		cfg = &VercelConfig{}
+		return nil, fmt.Errorf("No config found for site %s and component %s", site, component)
+	}
+	siteCfg, err := p.getSiteConfig(site)
+	if err == nil {
+		cfg = cfg.extendConfig(siteCfg)
 	}
 
+	return cfg, nil
+}
+
+func (p *VercelPlugin) getSiteConfig(site string) (*VercelConfig, error) {
+	cfg, ok := p.siteConfigs[site]
+	if !ok {
+		return nil, fmt.Errorf("No config found for site %s", site)
+	}
 	cfg = cfg.extendConfig(p.globalConfig)
+
+	return cfg, nil
+}
+
+func (p *VercelPlugin) getConfig(site string, component string) *VercelConfig {
+
+	cfg, err := p.getComponentConfig(site, component)
+	if err != nil {
+		cfg, err = p.getSiteConfig(site)
+		if err != nil {
+			cfg = p.globalConfig
+		}
+	}
 
 	// Default behavior for Vercel is to output to all environments
 	// Set this as default field unless manually filled
@@ -119,7 +159,7 @@ func (p *VercelPlugin) getSiteConfig(site string) *VercelConfig {
 }
 
 func (p *VercelPlugin) RenderTerraformResources(site string) (string, error) {
-	cfg := p.getSiteConfig(site)
+	cfg := p.getConfig(site, "")
 
 	resourceTemplate := `
 		provider "vercel" {
@@ -131,7 +171,7 @@ func (p *VercelPlugin) RenderTerraformResources(site string) (string, error) {
 }
 
 func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (*schema.ComponentSchema, error) {
-	cfg := p.getSiteConfig(site)
+	cfg := p.getConfig(site, component)
 	if cfg == nil {
 		return nil, nil
 	}

@@ -135,6 +135,56 @@ func TestInheritance(t *testing.T) {
 	assert.Contains(t, component.Variables, "environment")
 }
 
+func TestSiteComponentInheritance(t *testing.T) {
+	siteEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_ENVIRONMENT_VARIABLE_2", Value: "testing", Environment: []string{"production", "preview"}},
+		{Key: "TEST_EXTEND_VARIABLE", Value: "testing", Environment: []string{"production", "preview", "development"}},
+	}
+	siteVariables := make([]interface{}, len(siteEnvironmentVariables))
+	for i, s := range siteEnvironmentVariables {
+		siteVariables[i] = s
+	}
+
+	siteData := map[string]any{
+		"team_id":   "test-team-override",
+		"api_token": "test-token-override",
+		"project_config": map[string]any{
+			"manual_production_deployment": false,
+			"environment_variables":        siteVariables,
+		},
+	}
+
+	componentEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_ENVIRONMENT_VARIABLE_3", Value: "testing"},
+	}
+
+	componentVariables := make([]interface{}, len(componentEnvironmentVariables))
+	for i, s := range componentEnvironmentVariables {
+		componentVariables[i] = s
+	}
+
+	componentData := map[string]any{
+		"project_config": map[string]any{
+			"environment_variables": componentVariables,
+		},
+	}
+
+	plugin := NewVercelPlugin()
+
+	err := plugin.SetSiteConfig("my-site", siteData)
+	require.NoError(t, err)
+
+	err = plugin.SetSiteComponentConfig("my-site", "test-component", componentData)
+
+	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+	require.NoError(t, err)
+
+	// Test whether environment variables get extended
+	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_2\"")
+	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_3\"")
+
+}
+
 func TestExtendEnvironmentVariables(t *testing.T) {
 	globalEnvironmentVariables := []ProjectEnvironmentVariable{
 		{Key: "TEST_EXTEND_VARIABLE", Value: "test", Environment: []string{"production"}},
