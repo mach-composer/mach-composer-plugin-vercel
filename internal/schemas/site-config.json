@@ -33,7 +33,7 @@
                 "type": "string"
               },
               "value": {
-                "type": "string"
+                "type": ["string", "integer", "boolean"]
               },
               "environment": {
                 "type": "array",
