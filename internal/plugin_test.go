@@ -241,3 +241,44 @@ func TestExtendEnvironmentVariables(t *testing.T) {
 	assert.Contains(t, component.Variables, "value = \"testing\"")
 
 }
+
+func TestCompleteInheritance(t *testing.T) {
+	global := map[string]any{
+		"team_id": "test-team",
+		"project_config": map[string]any{
+			"serverless_function_region": "fra1",
+		},
+	}
+
+	plugin := NewVercelPlugin()
+
+	err := plugin.SetGlobalConfig(global)
+	require.NoError(t, err)
+
+	siteConfig := map[string]any{
+		"project_config": map[string]any{
+			"git_repository": map[string]any{
+				"type": "github",
+				"repo": "owner/test-repo",
+			},
+		},
+	}
+
+	err = plugin.SetSiteConfig("my-site", siteConfig)
+	require.NoError(t, err)
+
+	componentConfig := map[string]any{
+		"project_config": map[string]any{
+			"manual_production_deployment": true,
+		},
+	}
+
+	err = plugin.SetSiteComponentConfig("my-site", "test-component", componentConfig)
+	require.NoError(t, err)
+
+	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+
+	assert.Contains(t, component.Variables, "serverless_function_region = \"fra1\"")
+	assert.Contains(t, component.Variables, "type = \"github\"")
+	assert.Contains(t, component.Variables, "manual_production_deployment = true")
+}

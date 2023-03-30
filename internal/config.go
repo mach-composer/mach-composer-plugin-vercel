@@ -53,28 +53,33 @@ type ProjectConfig struct {
 func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 	if o != nil && o != (&ProjectConfig{}) {
 		cfg := &ProjectConfig{
+			Name:                       o.Name,
+			Framework:                  o.Framework,
+			ServerlessFunctionRegion:   o.ServerlessFunctionRegion,
+			BuildCommand:               o.BuildCommand,
+			RootDirectory:              o.RootDirectory,
 			ManualProductionDeployment: o.ManualProductionDeployment,
 			EnvironmentVariables:       o.EnvironmentVariables,
 			GitRepository:              o.GitRepository,
 		}
 
-		if c.Name != o.Name {
+		if c.Name != "" {
 			cfg.Name = c.Name
 		}
 
-		if c.Framework != o.Framework {
+		if c.Framework != "" {
 			cfg.Framework = c.Framework
 		}
 
-		if c.ServerlessFunctionRegion != o.ServerlessFunctionRegion {
+		if c.ServerlessFunctionRegion != "" {
 			cfg.ServerlessFunctionRegion = c.ServerlessFunctionRegion
 		}
 
-		if c.BuildCommand != o.BuildCommand {
+		if c.BuildCommand != "" {
 			cfg.BuildCommand = c.BuildCommand
 		}
 
-		if c.RootDirectory != o.RootDirectory {
+		if c.RootDirectory != "" {
 			cfg.RootDirectory = c.RootDirectory
 		}
 
@@ -82,7 +87,7 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			cfg.ManualProductionDeployment = c.ManualProductionDeployment
 		}
 
-		if c.GitRepository != o.GitRepository {
+		if c.GitRepository.Type != "" || c.GitRepository.Repo != "" {
 			cfg.GitRepository = c.GitRepository
 		}
 
