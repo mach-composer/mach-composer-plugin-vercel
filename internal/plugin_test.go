@@ -149,6 +149,7 @@ func TestSiteComponentInheritance(t *testing.T) {
 		"team_id":   "test-team-override",
 		"api_token": "test-token-override",
 		"project_config": map[string]any{
+			"serverless_function_region":   "iad1",
 			"manual_production_deployment": false,
 			"environment_variables":        siteVariables,
 		},
@@ -165,7 +166,9 @@ func TestSiteComponentInheritance(t *testing.T) {
 
 	componentData := map[string]any{
 		"project_config": map[string]any{
-			"environment_variables": componentVariables,
+			"serverless_function_region":   "fra1",
+			"manual_production_deployment": true,
+			"environment_variables":        componentVariables,
 		},
 	}
 
@@ -180,6 +183,8 @@ func TestSiteComponentInheritance(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test whether environment variables get extended
+	assert.Contains(t, component.Variables, "serverless_function_region = \"fra1\"")
+	assert.Contains(t, component.Variables, "manual_production_deployment = true")
 	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_2\"")
 	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_3\"")
 

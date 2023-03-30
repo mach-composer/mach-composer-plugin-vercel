@@ -55,6 +55,7 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 		cfg := &ProjectConfig{
 			ManualProductionDeployment: o.ManualProductionDeployment,
 			EnvironmentVariables:       o.EnvironmentVariables,
+			GitRepository:              o.GitRepository,
 		}
 
 		if c.Name != o.Name {
