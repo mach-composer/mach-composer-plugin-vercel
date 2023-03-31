@@ -5,13 +5,13 @@ This plugin adds an integration for Vercel for use with MACH composer.
 This allows you to streamline your configuration and share it as an integration with your MACH components.
 
 ## Requirements
-- [MACH Composer 3.x](https://github.com/labd/mach-composer)
+- [MACH Composer >=2.5](https://github.com/labd/mach-composer)
 - [terraform-provider-vercel](https://github.com/vercel/terraform-provider-vercel)
 
 ## Usage
 
-You can set up configuration variables on both a global and a component specific level.
-All values set on a global level will be inherited and potentially overwritten by its components.
+You can set up configuration variables on a global, a site and a component specific level. Inheritance will take place on each level, combining configuration from global
+all the way down to a component level.
 
 Example of setting up global and component level configuration:
 ```yaml
@@ -30,6 +30,11 @@ global:
 sites:
     - identifier: my-site
       # ...
+      vercel:
+        project_config:
+          environment_variables:
+            - key: SITE_SPECIFIC_ENVIRONMENT_VARIABLE
+              value: site
       components:
         - name: my-component
           vercel: # Override defaults on component level
@@ -41,7 +46,7 @@ sites:
                   type: "github"
                   repo: "mach-composer/my-vercel-project"
                 environment_variables:
-                    - key: CUSTOM_SITE_SPECIFIC_ENVIRONMENT_VARIABLE
+                    - key: CUSTOM_COMPONENT_SPECIFIC_ENVIRONMENT_VARIABLE
                       value: custom
                       environments: ["preview"]
 ```
