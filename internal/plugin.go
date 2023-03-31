@@ -178,17 +178,17 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 
 	template := `
 		vercel_team_id = {{ .TeamID|printf "%q" }}
-		name = {{ .ProjectConfig.Name|printf "%q" }}
-		framework = {{ .ProjectConfig.Framework|printf "%q" }}
-		build_command = {{ .ProjectConfig.BuildCommand|printf "%q" }}
-		root_directory = {{ .ProjectConfig.RootDirectory|printf "%q" }}
-		serverless_function_region = {{ .ProjectConfig.ServerlessFunctionRegion|printf "%q" }}
-		manual_production_deployment = {{ .ProjectConfig.ManualProductionDeployment }}
-		git_repository = {
+		vercel_project_name = {{ .ProjectConfig.Name|printf "%q" }}
+		vercel_project_framework = {{ .ProjectConfig.Framework|printf "%q" }}
+		vercel_project_build_command = {{ .ProjectConfig.BuildCommand|printf "%q" }}
+		vercel_project_root_directory = {{ .ProjectConfig.RootDirectory|printf "%q" }}
+		vercel_project_serverless_function_region = {{ .ProjectConfig.ServerlessFunctionRegion|printf "%q" }}
+		vercel_project_manual_production_deployment = {{ .ProjectConfig.ManualProductionDeployment }}
+		vercel_project_git_repository = {
 			type = {{ .ProjectConfig.GitRepository.Type|printf "%q" }}
 			repo = {{ .ProjectConfig.GitRepository.Repo|printf "%q" }}
 		}
-		environment_variables = [{{range .ProjectConfig.EnvironmentVariables }}
+		vercel_project_environment_variables = [{{range .ProjectConfig.EnvironmentVariables }}
 			{
 				key = {{ .Key|printf "%q" }}
 				value = {{ .Value|printf "%q" }}
