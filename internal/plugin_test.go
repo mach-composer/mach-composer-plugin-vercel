@@ -183,8 +183,8 @@ func TestSiteComponentInheritance(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test whether environment variables get extended
-	assert.Contains(t, component.Variables, "serverless_function_region = \"fra1\"")
-	assert.Contains(t, component.Variables, "manual_production_deployment = true")
+	assert.Contains(t, component.Variables, "vercel_project_serverless_function_region = \"fra1\"")
+	assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = true")
 	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_2\"")
 	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_3\"")
 
@@ -278,7 +278,7 @@ func TestCompleteInheritance(t *testing.T) {
 
 	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
 
-	assert.Contains(t, component.Variables, "serverless_function_region = \"fra1\"")
+	assert.Contains(t, component.Variables, "vercel_project_serverless_function_region = \"fra1\"")
 	assert.Contains(t, component.Variables, "type = \"github\"")
-	assert.Contains(t, component.Variables, "manual_production_deployment = true")
+	assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = true")
 }
