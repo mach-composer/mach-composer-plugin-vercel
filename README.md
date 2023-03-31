@@ -62,6 +62,28 @@ components:
 
 Then you can set up your terraform resources with the given variables:
 ```hcl
+resource "vercel_project" "project" {
+  name                       = var.vercel_project_name
+  framework                  = var.vercel_project_framework
+  team_id                    = var.vercel_team_id
+  serverless_function_region = var.vercel_project_serverless_function_region
+  environment                = local.environment
+  git_repository = var.vercel_project_git_repository
+
+  build_command  = var.vercel_project_build_command
+  root_directory = var.vercel_project_root_directory
+
+  lifecycle {
+    # never accidentally destroy this resource
+    prevent_destroy = true
+  }
+}
+```
+
+### Manual deployment example
+
+This is an example if you want to manually deploy vercel projects on MACH config updates:
+```hcl
 resource "vercel_deployment" "manual_production_deployment" {
   count      = var.manual_production_deployment ? 1 : 0
   project_id = vercel_project.my_project.id
