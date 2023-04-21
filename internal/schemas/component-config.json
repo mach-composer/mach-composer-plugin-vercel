@@ -60,6 +60,31 @@
         },
         "root_directory": {
           "type": "string"
+        },
+        "domains": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string"
+              },
+              "git_branch": {
+                "type": "string"
+              },
+              "redirect": {
+                "type": "string"
+              },
+              "redirect_status_code": {
+                "type": "number",
+                "oneOf": [
+                  {
+                    "enum": [301, 302, 307, 308]
+                  }
+                ]
+              }
+            }
+          }
         }
       }
     }

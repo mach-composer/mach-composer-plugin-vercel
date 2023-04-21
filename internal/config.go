@@ -48,7 +48,7 @@ type ProjectConfig struct {
 	GitRepository              GitRepository                `mapstructure:"git_repository"`
 	BuildCommand               string                       `mapstructure:"build_command"`
 	RootDirectory              string                       `mapstructure:"root_directory"`
-	ProjectDomains             []ProjectDomain              `mapstructure:"project_domains"`
+	ProjectDomains             []ProjectDomain              `mapstructure:"domains"`
 }
 
 func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
