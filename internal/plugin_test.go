@@ -17,6 +17,15 @@ func TestSetVercelConfig(t *testing.T) {
 		{Key: "TEST_ENVIRONMENT_VARIABLE_2", Value: "testing", Environment: []string{"production", "preview"}},
 	}
 
+	projectDomains := []ProjectDomain{
+		{Domain: "test-domain.com", GitBranch: "main", Redirect: "other-domain.com", RedirectStatusCode: 307},
+	}
+
+	domains := make([]interface{}, len(projectDomains))
+	for i, s := range projectDomains {
+		domains[i] = s
+	}
+
 	variables := make([]interface{}, len(environmentVariables))
 	for i, s := range environmentVariables {
 		variables[i] = s
@@ -37,6 +46,7 @@ func TestSetVercelConfig(t *testing.T) {
 				"repo": "mach-composer/my-project",
 			},
 			"environment_variables": variables,
+			"project_domains":       domains,
 		},
 	}
 
@@ -72,6 +82,13 @@ func TestSetVercelConfig(t *testing.T) {
 	assert.Contains(t, component.Variables, "environment = [\"development\", \"preview\", \"production\"]")
 	// Test custom environment variables list
 	assert.Contains(t, component.Variables, "environment = [\"production\", \"preview\"]")
+
+	// Test domains
+	assert.Contains(t, component.Variables, "domain = \"test-domain.com\"")
+	assert.Contains(t, component.Variables, "git_branch = \"main\"")
+	assert.Contains(t, component.Variables, "redirect = \"other-domain.com\"")
+	assert.Contains(t, component.Variables, "redirect_status_code = 307")
+
 }
 
 func TestInheritance(t *testing.T) {
