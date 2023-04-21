@@ -49,6 +49,11 @@ sites:
                     - key: CUSTOM_COMPONENT_SPECIFIC_ENVIRONMENT_VARIABLE
                       value: custom
                       environments: ["preview"]
+                domains:
+                  - domain: "cool-plugin.com"
+                    git_branch: main
+                    redirect: "cool-plugin.vercel.app"
+                    redirect_status_code: 307
 ```
 
 You can then set up Vercel as an integration for a specific component:
