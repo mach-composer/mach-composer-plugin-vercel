@@ -46,7 +46,7 @@ func TestSetVercelConfig(t *testing.T) {
 				"repo": "mach-composer/my-project",
 			},
 			"environment_variables": variables,
-			"project_domains":       domains,
+			"domains":               domains,
 		},
 	}
 
