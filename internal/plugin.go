@@ -195,6 +195,14 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 				{{ .DisplayEnvironments }}
 			},{{end}}
 		]
+		vercel_project_domains = [{{range .ProjectConfig.Domains }}
+			{
+				domain = {{ .Domain|printf "%q" }}
+				git_branch = {{ .GitBranch|printf "%q" }}
+				redirect = {{ .Redirect|printf "%q" }}
+				redirect_status_code = {{ .RedirectStatusCode|printf "%q" }}
+			},{{end}}
+		]
 	`
 
 	vars, err := helpers.RenderGoTemplate(template, cfg)

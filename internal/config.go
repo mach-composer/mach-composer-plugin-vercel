@@ -48,6 +48,7 @@ type ProjectConfig struct {
 	GitRepository              GitRepository                `mapstructure:"git_repository"`
 	BuildCommand               string                       `mapstructure:"build_command"`
 	RootDirectory              string                       `mapstructure:"root_directory"`
+	ProjectDomains             []ProjectDomain              `mapstructure:"project_domains"`
 }
 
 func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
@@ -61,6 +62,7 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			ManualProductionDeployment: o.ManualProductionDeployment,
 			EnvironmentVariables:       o.EnvironmentVariables,
 			GitRepository:              o.GitRepository,
+			ProjectDomains:             o.ProjectDomains,
 		}
 
 		if c.Name != "" {
@@ -94,9 +96,15 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 		if !slices.EqualFunc(c.EnvironmentVariables, o.EnvironmentVariables, EqualEnvironmentVariables) {
 			// Append missing environment variables
 			cfg.EnvironmentVariables = append(cfg.EnvironmentVariables, c.EnvironmentVariables...)
-			// TODO: Update environment variables that exist in both configs with values of the site config
-
 		}
+
+		if !slices.EqualFunc(c.ProjectDomains, o.ProjectDomains, func(c, o ProjectDomain) bool {
+			return c.Domain == o.Domain && c.GitBranch == o.GitBranch && c.Redirect == o.Redirect && c.RedirectStatusCode == o.RedirectStatusCode
+		}) {
+			// Append missing project domains
+			cfg.ProjectDomains = append(cfg.ProjectDomains, c.ProjectDomains...)
+		}
+
 		return cfg
 	}
 
@@ -122,4 +130,11 @@ func (c *ProjectEnvironmentVariable) DisplayEnvironments() string {
 
 func EqualEnvironmentVariables(c, o ProjectEnvironmentVariable) bool {
 	return c.Key == o.Key && c.Value == o.Value && slices.Equal(c.Environment, o.Environment)
+}
+
+type ProjectDomain struct {
+	Domain             string `mapstructure:"domain"`
+	GitBranch          string `mapstructure:"git_branch"`
+	Redirect           string `mapstructure:"redirect"`
+	RedirectStatusCode int64  `mapstructure:"redirect_status_code"`
 }
