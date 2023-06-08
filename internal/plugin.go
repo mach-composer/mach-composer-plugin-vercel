@@ -177,30 +177,30 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 	}
 
 	template := `
-		vercel_team_id = {{ .TeamID|printf "%q" }}
-		vercel_project_name = {{ .ProjectConfig.Name|printf "%q" }}
-		vercel_project_framework = {{ .ProjectConfig.Framework|printf "%q" }}
-		vercel_project_build_command = {{ .ProjectConfig.BuildCommand|printf "%q" }}
-		vercel_project_root_directory = {{ .ProjectConfig.RootDirectory|printf "%q" }}
-		vercel_project_serverless_function_region = {{ .ProjectConfig.ServerlessFunctionRegion|printf "%q" }}
-		vercel_project_manual_production_deployment = {{ .ProjectConfig.ManualProductionDeployment }}
+		{{ renderProperty "vercel_team_id" .TeamID }}
+		{{ renderProperty "vercel_project_name" .ProjectConfig.Name }}
+		{{ renderProperty "vercel_project_framework" .ProjectConfig.Framework }}
+		{{ renderProperty "vercel_project_build_command" .ProjectConfig.BuildCommand }}
+		{{ renderProperty "vercel_project_root_directory" .ProjectConfig.RootDirectory }}
+		{{ renderProperty "vercel_project_serverless_function_region" .ProjectConfig.ServerlessFunctionRegion }}
+		{{ renderProperty "vercel_project_manual_production_deployment" .ProjectConfig.ManualProductionDeployment }}
 		vercel_project_git_repository = {
-			type = {{ .ProjectConfig.GitRepository.Type|printf "%q" }}
-			repo = {{ .ProjectConfig.GitRepository.Repo|printf "%q" }}
+			{{ renderProperty "type" .ProjectConfig.GitRepository.Type }}
+			{{ renderProperty "repo" .ProjectConfig.GitRepository.Repo }}
 		}
 		vercel_project_environment_variables = [{{range .ProjectConfig.EnvironmentVariables }}
 			{
-				key = {{ .Key|printf "%q" }}
-				value = {{ .Value|printf "%q" }}
+				{{ renderProperty "key" .Key }}
+				{{ renderProperty "value" .Value }}
 				{{ .DisplayEnvironments }}
 			},{{end}}
 		]
 		vercel_project_domains = [{{range .ProjectConfig.ProjectDomains }}
 			{
-				domain = {{ .Domain|printf "%q" }}
-				git_branch = {{ .GitBranch|printf "%q" }}
-				redirect = {{ .Redirect|printf "%q" }}
-				redirect_status_code = {{ .RedirectStatusCode }}
+				{{ renderProperty "domain" .Domain }}
+				{{ renderProperty "git_branch" .GitBranch }}
+				{{ renderProperty "redirect" .Redirect}}
+				{{ renderProperty "redirect_status_code" .RedirectStatusCode }}
 			},{{end}}
 		]
 	`
