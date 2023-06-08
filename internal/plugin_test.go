@@ -33,7 +33,7 @@ func TestSetVercelConfig(t *testing.T) {
 
 	data := map[string]any{
 		"team_id":   "test-team",
-		"api_token": "test-token",
+		"api_token": "${sops.data.output[\"api_token\"]}",
 		"project_config": map[string]any{
 			"name":                         "test-project",
 			"framework":                    "nextjs",
@@ -62,7 +62,7 @@ func TestSetVercelConfig(t *testing.T) {
 
 	result, err := plugin.RenderTerraformResources("my-site")
 	require.NoError(t, err)
-	assert.Contains(t, result, "api_token = \"test-token\"")
+	assert.Contains(t, result, `api_token = sops.data.output["api_token"]`)
 
 	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
 	require.NoError(t, err)
