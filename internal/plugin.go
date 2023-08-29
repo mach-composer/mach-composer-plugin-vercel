@@ -164,6 +164,7 @@ func (p *VercelPlugin) RenderTerraformResources(site string) (string, error) {
 	resourceTemplate := `
 		provider "vercel" {
 			{{ renderProperty "api_token" .APIToken }}
+			{{ renderProperty "team_id" .TeamID }}
 		}
 	`
 
