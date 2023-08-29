@@ -20,7 +20,7 @@ type VercelPlugin struct {
 
 func NewVercelPlugin() schema.MachComposerPlugin {
 	state := &VercelPlugin{
-		provider:    "0.11.4", // Provider version of `vercel/vercel`
+		provider:    "0.15.1", // Provider version of `vercel/vercel`
 		siteConfigs: map[string]*VercelConfig{},
 	}
 	return plugin.NewPlugin(&schema.PluginSchema{
