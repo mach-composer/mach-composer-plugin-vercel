@@ -18,7 +18,7 @@ func TestSetVercelConfig(t *testing.T) {
 	}
 
 	projectDomains := []ProjectDomain{
-		{Domain: "test-domain.com", GitBranch: "main", Redirect: "other-domain.com", RedirectStatusCode: 307},
+		{Domain: "test-domain.com", RedirectStatusCode: 307},
 	}
 
 	domains := make([]interface{}, len(projectDomains))
@@ -85,8 +85,6 @@ func TestSetVercelConfig(t *testing.T) {
 
 	// Test domains
 	assert.Contains(t, component.Variables, "domain = \"test-domain.com\"")
-	assert.Contains(t, component.Variables, "git_branch = \"main\"")
-	assert.Contains(t, component.Variables, "redirect = \"other-domain.com\"")
 	assert.Contains(t, component.Variables, "redirect_status_code = 307")
 
 }

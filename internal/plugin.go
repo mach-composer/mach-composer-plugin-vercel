@@ -199,6 +199,7 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 		vercel_project_domains = [{{range .ProjectConfig.ProjectDomains }}
 			{
 				{{ renderProperty "domain" .Domain }}
+				{{ renderProperty "redirect_status_code" .RedirectStatusCode }}
 			},{{end}}
 		]
 	`
