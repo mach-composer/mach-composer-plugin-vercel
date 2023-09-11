@@ -113,7 +113,7 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			cfg.GitRepository = c.GitRepository
 		}
 
-		if !c.ProtectionBypassForAutomation {
+		if c.ProtectionBypassForAutomation {
 			cfg.ProtectionBypassForAutomation = c.ProtectionBypassForAutomation
 		}
 
@@ -121,12 +121,8 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			cfg.VercelAuthentication.ProtectProduction = c.VercelAuthentication.ProtectProduction
 		}
 
-		if c.PasswordProtection.Password != "" {
-			cfg.PasswordProtection.Password = c.PasswordProtection.Password
-		}
-
-		if !c.PasswordProtection.ProtectProduction {
-			cfg.PasswordProtection.ProtectProduction = c.PasswordProtection.ProtectProduction
+		if c.PasswordProtection.Password != "" || !c.PasswordProtection.ProtectProduction {
+			cfg.PasswordProtection = c.PasswordProtection
 		}
 
 		if !slices.EqualFunc(c.EnvironmentVariables, o.EnvironmentVariables, EqualEnvironmentVariables) {
