@@ -49,7 +49,7 @@ func (p *VercelPlugin) Configure(environment string, provider string) error {
 }
 
 func (p *VercelPlugin) SetGlobalConfig(data map[string]any) error {
-	cfg := VercelConfig{}
+	cfg := NewVercelConfig()
 
 	if err := mapstructure.Decode(data, &cfg); err != nil {
 		return err
@@ -66,7 +66,7 @@ func (p *VercelPlugin) GetValidationSchema() (*schema.ValidationSchema, error) {
 }
 
 func (p *VercelPlugin) SetSiteConfig(site string, data map[string]any) error {
-	cfg := VercelConfig{}
+	cfg := NewVercelConfig()
 	if err := mapstructure.Decode(data, &cfg); err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (p *VercelPlugin) SetSiteConfig(site string, data map[string]any) error {
 
 // Set config for a combination of site and component.
 func (p *VercelPlugin) SetSiteComponentConfig(site string, component string, data map[string]any) error {
-	cfg := VercelConfig{}
+	cfg := NewVercelConfig()
 	if err := mapstructure.Decode(data, &cfg); err != nil {
 		return err
 	}
@@ -185,6 +185,14 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 		{{ renderProperty "vercel_project_root_directory" .ProjectConfig.RootDirectory }}
 		{{ renderProperty "vercel_project_serverless_function_region" .ProjectConfig.ServerlessFunctionRegion }}
 		{{ renderProperty "vercel_project_manual_production_deployment" .ProjectConfig.ManualProductionDeployment }}
+		{{ renderProperty "vercel_project_protection_bypass_for_automation" .ProjectConfig.ProtectionBypassForAutomation }}
+		vercel_project_vercel_authentication = {
+			{{ renderProperty "protect_production" .ProjectConfig.VercelAuthentication.ProtectProduction }}
+		}
+		vercel_project_password_protection = {
+			{{ renderProperty "password" .ProjectConfig.PasswordProtection.Password }}
+			{{ renderProperty "protect_production" .ProjectConfig.PasswordProtection.ProtectProduction }}
+		}
 		vercel_project_git_repository = {
 			{{ renderProperty "type" .ProjectConfig.GitRepository.Type }}
 			{{ renderProperty "repo" .ProjectConfig.GitRepository.Repo }}

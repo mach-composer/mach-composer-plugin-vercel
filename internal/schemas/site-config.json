@@ -20,7 +20,6 @@
         "manual_production_deployment": {
           "type": "boolean"
         },
-
         "serverless_function_region": {
           "type": "string"
         },
@@ -83,6 +82,28 @@
                   }
                 ]
               }
+            }
+          }
+        },
+        "protection_bypass_for_automation": {
+          "type": "boolean"
+        },
+        "vercel_authentication": {
+          "type": "object",
+          "properties": {
+            "protect_production": {
+              "type": "boolean"
+            }
+          }
+        },
+        "password_protection": {
+          "type": "object",
+          "properties": {
+            "password": {
+              "type": "string"
+            },
+            "protect_production": {
+              "type": "boolean"
             }
           }
         }
