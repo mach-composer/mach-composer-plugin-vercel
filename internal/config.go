@@ -144,8 +144,9 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 }
 
 type GitRepository struct {
-	Type string `mapstructure:"type"`
-	Repo string `mapstructure:"repo"`
+	ProductionBranch string `mapstructure:"production_branch"`
+	Type             string `mapstructure:"type"`
+	Repo             string `mapstructure:"repo"`
 }
 
 type PasswordProtection struct {
