@@ -42,9 +42,8 @@ func TestSetVercelConfig(t *testing.T) {
 			"root_directory":               "./my-project",
 			"manual_production_deployment": true,
 			"git_repository": map[string]any{
-				"production_branch": "main",
-				"type":              "github",
-				"repo":              "mach-composer/my-project",
+				"type": "github",
+				"repo": "mach-composer/my-project",
 			},
 			"environment_variables":            variables,
 			"domains":                          domains,
@@ -82,7 +81,6 @@ func TestSetVercelConfig(t *testing.T) {
 	assert.Contains(t, component.Variables, "root_directory = \"./my-project\"")
 	assert.Contains(t, component.Variables, "vercel_team_id = \"test-team\"")
 	assert.Contains(t, component.Variables, "manual_production_deployment = true")
-	assert.Contains(t, component.Variables, "production_branch = \"main\"")
 	assert.Contains(t, component.Variables, "type = \"github\"")
 	assert.Contains(t, component.Variables, "repo = \"mach-composer/my-project\"")
 	assert.Contains(t, component.Variables, "protection_bypass_for_automation = true")
@@ -300,9 +298,8 @@ func TestCompleteInheritance(t *testing.T) {
 	siteConfig := map[string]any{
 		"project_config": map[string]any{
 			"git_repository": map[string]any{
-				"production_branch": "main",
-				"type":              "github",
-				"repo":              "owner/test-repo",
+				"type": "github",
+				"repo": "owner/test-repo",
 			},
 		},
 	}
@@ -323,6 +320,5 @@ func TestCompleteInheritance(t *testing.T) {
 
 	assert.Contains(t, component.Variables, "vercel_project_serverless_function_region = \"fra1\"")
 	assert.Contains(t, component.Variables, "type = \"github\"")
-	assert.Contains(t, component.Variables, "production_branch = \"main\"")
 	assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = true")
 }
