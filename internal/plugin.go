@@ -194,6 +194,7 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 			{{ renderProperty "protect_production" .ProjectConfig.PasswordProtection.ProtectProduction }}
 		}
 		vercel_project_git_repository = {	
+			{{ renderProperty "production_branch" .ProjectConfig.GitRepository.ProductionBranch }}
 			{{ renderProperty "type" .ProjectConfig.GitRepository.Type }}
 			{{ renderProperty "repo" .ProjectConfig.GitRepository.Repo }}
 		}

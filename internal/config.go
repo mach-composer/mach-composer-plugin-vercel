@@ -15,7 +15,11 @@ type VercelConfig struct {
 // Creates a new VercelConfig with default values
 func NewVercelConfig() VercelConfig {
 	return VercelConfig{
+
 		ProjectConfig: ProjectConfig{
+			GitRepository: GitRepository{
+				ProductionBranch: "main",
+			},
 			PasswordProtection: PasswordProtection{
 				ProtectProduction: true,
 			},
