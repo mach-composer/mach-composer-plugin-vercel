@@ -46,6 +46,9 @@
         "git_repository": {
           "type": "object",
           "properties": {
+            "production_branch": {
+              "type": "string"
+            },
             "type": {
               "type": "string"
             },
