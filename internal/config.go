@@ -17,9 +17,6 @@ func NewVercelConfig() VercelConfig {
 	return VercelConfig{
 
 		ProjectConfig: ProjectConfig{
-			GitRepository: GitRepository{
-				ProductionBranch: "main",
-			},
 			PasswordProtection: PasswordProtection{
 				ProtectProduction: true,
 			},
@@ -113,8 +110,14 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			cfg.ManualProductionDeployment = c.ManualProductionDeployment
 		}
 
-		if c.GitRepository.Type != "" || c.GitRepository.Repo != "" {
-			cfg.GitRepository = c.GitRepository
+		if c.GitRepository.Type != "" || c.GitRepository.Repo != "" || c.GitRepository.ProductionBranch != "" {
+			result := c.GitRepository.extendConfig(&o.GitRepository)
+			if result != nil {
+				cfg.GitRepository = *result
+			} else {
+				cfg.GitRepository = c.GitRepository
+			}
+
 		}
 
 		if c.ProtectionBypassForAutomation {
@@ -151,6 +154,32 @@ type GitRepository struct {
 	ProductionBranch string `mapstructure:"production_branch"`
 	Type             string `mapstructure:"type"`
 	Repo             string `mapstructure:"repo"`
+}
+
+func (c *GitRepository) extendConfig(o *GitRepository) *GitRepository {
+	if o != nil && o != (&GitRepository{}) {
+		cfg := &GitRepository{
+			ProductionBranch: o.ProductionBranch,
+			Type:             o.Type,
+			Repo:             o.Repo,
+		}
+
+		if c.ProductionBranch != "" {
+			cfg.ProductionBranch = c.ProductionBranch
+		}
+
+		if c.Type != "" {
+			cfg.Type = c.Type
+		}
+
+		if c.Repo != "" {
+			cfg.Repo = c.Repo
+		}
+
+		return cfg
+	}
+
+	return c
 }
 
 type PasswordProtection struct {

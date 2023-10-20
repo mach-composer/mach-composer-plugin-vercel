@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -194,6 +195,11 @@ func TestSiteComponentInheritance(t *testing.T) {
 			"serverless_function_region":   "iad1",
 			"manual_production_deployment": false,
 			"environment_variables":        siteVariables,
+			"git_repository": map[string]any{
+				"production_branch": "main",
+				"type":              "github",
+				"repo":              "mach-composer/my-project",
+			},
 		},
 	}
 
@@ -211,6 +217,9 @@ func TestSiteComponentInheritance(t *testing.T) {
 			"serverless_function_region":   "fra1",
 			"manual_production_deployment": true,
 			"environment_variables":        componentVariables,
+			"git_repository": map[string]any{
+				"production_branch": "production",
+			},
 		},
 	}
 
@@ -229,6 +238,7 @@ func TestSiteComponentInheritance(t *testing.T) {
 	assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = true")
 	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_2\"")
 	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_3\"")
+	assert.Contains(t, component.Variables, "production_branch = \"production\"")
 
 }
 
@@ -320,6 +330,8 @@ func TestCompleteInheritance(t *testing.T) {
 	require.NoError(t, err)
 
 	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+
+	fmt.Println(component)
 
 	assert.Contains(t, component.Variables, "vercel_project_serverless_function_region = \"fra1\"")
 	assert.Contains(t, component.Variables, "type = \"github\"")
