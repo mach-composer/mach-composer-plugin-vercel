@@ -62,6 +62,7 @@ type ProjectConfig struct {
 	EnvironmentVariables          []ProjectEnvironmentVariable `mapstructure:"environment_variables"`
 	GitRepository                 GitRepository                `mapstructure:"git_repository"`
 	BuildCommand                  string                       `mapstructure:"build_command"`
+	IgnoreCommand                 string                       `mapstructure:"ignore_command"`
 	RootDirectory                 string                       `mapstructure:"root_directory"`
 	ProjectDomains                []ProjectDomain              `mapstructure:"domains"`
 	ProtectionBypassForAutomation bool                         `mapstructure:"protection_bypass_for_automation"`
@@ -76,6 +77,7 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			Framework:                     o.Framework,
 			ServerlessFunctionRegion:      o.ServerlessFunctionRegion,
 			BuildCommand:                  o.BuildCommand,
+			IgnoreCommand:                 o.IgnoreCommand,
 			RootDirectory:                 o.RootDirectory,
 			ManualProductionDeployment:    o.ManualProductionDeployment,
 			EnvironmentVariables:          o.EnvironmentVariables,
@@ -100,6 +102,10 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 
 		if c.BuildCommand != "" {
 			cfg.BuildCommand = c.BuildCommand
+		}
+
+		if c.IgnoreCommand != "" {
+			cfg.IgnoreCommand = c.IgnoreCommand
 		}
 
 		if c.RootDirectory != "" {

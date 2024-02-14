@@ -40,6 +40,7 @@ func TestSetVercelConfig(t *testing.T) {
 			"framework":                    "nextjs",
 			"serverless_function_region":   "iad1",
 			"build_command":                "next build",
+			"ignore_command":               "if [ $VERCEL_ENV == 'production' ]; then exit 1; else exit 0; fi",
 			"root_directory":               "./my-project",
 			"manual_production_deployment": true,
 			"git_repository": map[string]any{
@@ -80,6 +81,7 @@ func TestSetVercelConfig(t *testing.T) {
 	assert.Contains(t, component.Variables, "framework = \"nextjs\"")
 	assert.Contains(t, component.Variables, "serverless_function_region = \"iad1\"")
 	assert.Contains(t, component.Variables, "build_command = \"next build\"")
+	assert.Contains(t, component.Variables, "ignore_command = \"if [ $VERCEL_ENV == 'production' ]; then exit 1; else exit 0; fi\"")
 	assert.Contains(t, component.Variables, "root_directory = \"./my-project\"")
 	assert.Contains(t, component.Variables, "vercel_team_id = \"test-team\"")
 	assert.Contains(t, component.Variables, "manual_production_deployment = true")
