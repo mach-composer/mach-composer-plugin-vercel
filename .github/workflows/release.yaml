@@ -44,5 +44,5 @@ jobs:
       - name: Upload release
         uses: actions/upload-artifact@v3
         with:
-          name: mach-composer-plugin-vercel
+          name: mach-composer-plugin-amplience
           path: dist/*

@@ -1,0 +1,55 @@
+name: Run tests
+
+on: [ pull_request ]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Task
+        uses: arduino/setup-task@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          args: --issues-exit-code=0 --timeout=5m
+
+      - name: Run tests
+        run: |
+          task cover
+          mkdir -p output
+          cp coverage.out output/coverage.out
+
+      - name: Upload to codecov
+        uses: codecov/codecov-action@v3
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: output
+          path: output/**/*
+
+      - name: build binary
+        uses: goreleaser/goreleaser-action@v3
+        with:
+          args: build --snapshot --clean --single-target
+        env:
+          GOPATH: ${{ env.GOPATH }}

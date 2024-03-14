@@ -1,0 +1,80 @@
+name: Create beta release
+
+on:
+  workflow_dispatch:
+    inputs:
+      next:
+        description: 'The next increment to create the release for'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - major
+          - minor
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch tags
+        run: git fetch --force --tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Task
+        uses: arduino/setup-task@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get hash
+        shell: bash
+        run: |
+          HASH=$(git rev-parse --short "$GITHUB_SHA")
+          echo "HASH=$HASH" >> $GITHUB_ENV
+
+      - name: Get the next potential version
+        id: next-tag
+        uses: miniscruff/changie-action@v2
+        with:
+          version: latest
+          args: next -p beta-${{ env.HASH }} ${{ github.event.inputs.next }}
+
+      - name: Output changes
+        uses: miniscruff/changie-action@v2
+        id: changelog
+        with:
+          version: latest
+          args: batch --dry-run -p beta-${{ env.HASH }} ${{ github.event.inputs.next }}
+
+      - name: Save ChangeLog to file
+        id: save_changes
+        run: |
+          tmpfile=$(mktemp)
+          echo "${{ steps.changelog.outputs.output }}" > $tmpfile
+          echo  "changelog_file=$tmpfile"  >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          args: release --clean --skip=validate --release-notes ${{ steps.save_changes.outputs.changelog_file }}
+        env:
+          GORELEASER_CURRENT_TAG: ${{ steps.next-tag.outputs.output }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPATH: ${{ env.GOPATH }}
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+          SKIP_UPLOAD: true
+
+      - name: Upload release
+        uses: actions/upload-artifact@v3
+        with:
+          name: mach-composer-plugin-vercel
+          path: dist/*
