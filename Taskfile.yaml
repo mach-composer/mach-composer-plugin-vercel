@@ -1,0 +1,15 @@
+version: '3'
+
+tasks:
+  lint:
+    cmd: golangci-lint run
+
+  build:
+    cmd: goreleaser build --snapshot --single-target --rm-dist
+
+  test:
+    cmd: go test -race ./...
+
+  cover:
+    cmd: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
