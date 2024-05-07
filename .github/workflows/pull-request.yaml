@@ -28,6 +28,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Has changes file
+        if: github.actor != 'dependabot[bot]'
         uses: mach-composer/check-changie-changes-action@main
 
       - name: golangci-lint
