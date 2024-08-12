@@ -52,11 +52,11 @@ func TestSetVercelConfig(t *testing.T) {
 			"domains":                          domains,
 			"protection_bypass_for_automation": true,
 			"vercel_authentication": map[string]any{
-				"protect_production": true,
+				"deployment_type": "only_preview_deployments",
 			},
 			"password_protection": map[string]any{
-				"password":           "MyPassword",
-				"protect_production": true,
+				"password":        "MyPassword",
+				"deployment_type": "only_preview_deployments",
 			},
 		},
 	}
@@ -89,7 +89,7 @@ func TestSetVercelConfig(t *testing.T) {
 	assert.Contains(t, component.Variables, "type = \"github\"")
 	assert.Contains(t, component.Variables, "repo = \"mach-composer/my-project\"")
 	assert.Contains(t, component.Variables, "protection_bypass_for_automation = true")
-	assert.Contains(t, component.Variables, "protect_production = true")
+	assert.Contains(t, component.Variables, "deployment_type = \"only_preview_deployments\"")
 	assert.Contains(t, component.Variables, "password = \"MyPassword\"")
 
 	// Test environment variables
@@ -121,11 +121,11 @@ func TestInheritance(t *testing.T) {
 			"manual_production_deployment":     true,
 			"protection_bypass_for_automation": true,
 			"vercel_authentication": map[string]any{
-				"protect_production": true,
+				"deployment_type": "standard_protection",
 			},
 			"password_protection": map[string]any{
-				"password":           "MyPassword",
-				"protect_production": true,
+				"password":        "MyPassword",
+				"deployment_type": "standard_protection",
 			},
 			"environment_variables": globalVariables,
 		},
@@ -145,10 +145,11 @@ func TestInheritance(t *testing.T) {
 		"api_token": "test-token-override",
 		"project_config": map[string]any{
 			"vercel_authentication": map[string]any{
-				"protect_production": false,
+				"deployment_type": "standard_protection",
 			},
 			"password_protection": map[string]any{
-				"protect_production": false,
+				"password":        "MyPassword",
+				"deployment_type": "standard_protection",
 			},
 			"environment_variables": siteVariables,
 		},
@@ -175,7 +176,7 @@ func TestInheritance(t *testing.T) {
 	// Test whether environment variables get extended
 	assert.Contains(t, component.Variables, "environment = [\"development\", \"preview\", \"production\"]")
 	assert.Contains(t, component.Variables, "environment = [\"production\", \"preview\"]")
-	assert.Contains(t, component.Variables, "protect_production = false")
+	assert.Contains(t, component.Variables, "deployment_type = \"standard_protection\"")
 
 	assert.Contains(t, component.Variables, "environment")
 }

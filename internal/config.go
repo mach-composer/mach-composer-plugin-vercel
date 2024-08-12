@@ -18,10 +18,10 @@ func NewVercelConfig() VercelConfig {
 
 		ProjectConfig: ProjectConfig{
 			PasswordProtection: PasswordProtection{
-				ProtectProduction: true,
+				DeploymentType: "standard_protection",
 			},
 			VercelAuthentication: VercelAuthentication{
-				ProtectProduction: true,
+				DeploymentType: "standard_protection",
 			},
 		},
 	}
@@ -130,11 +130,11 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			cfg.ProtectionBypassForAutomation = c.ProtectionBypassForAutomation
 		}
 
-		if !c.VercelAuthentication.ProtectProduction {
-			cfg.VercelAuthentication.ProtectProduction = c.VercelAuthentication.ProtectProduction
+		if c.VercelAuthentication.DeploymentType != "" {
+			cfg.VercelAuthentication.DeploymentType = c.VercelAuthentication.DeploymentType
 		}
 
-		if c.PasswordProtection.Password != "" || !c.PasswordProtection.ProtectProduction {
+		if c.PasswordProtection.Password != "" {
 			cfg.PasswordProtection = c.PasswordProtection
 		}
 
@@ -189,12 +189,12 @@ func (c *GitRepository) extendConfig(o *GitRepository) *GitRepository {
 }
 
 type PasswordProtection struct {
-	Password          string `mapstructure:"password"`
-	ProtectProduction bool   `mapstructure:"protect_production"`
+	Password       string `mapstructure:"password"`
+	DeploymentType string `mapstructure:"deployment_type"`
 }
 
 type VercelAuthentication struct {
-	ProtectProduction bool `mapstructure:"protect_production"`
+	DeploymentType string `mapstructure:"deployment_type"`
 }
 
 type ProjectEnvironmentVariable struct {
