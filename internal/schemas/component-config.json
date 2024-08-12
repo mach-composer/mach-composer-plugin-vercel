@@ -95,8 +95,8 @@
         "vercel_authentication": {
           "type": "object",
           "properties": {
-            "protect_production": {
-              "type": "boolean"
+            "deployment_type": {
+              "enum": ["standard_protection", "all_deployments", "only_production_deployments", "only_preview_deployments"]
             }
           }
         },
@@ -106,8 +106,8 @@
             "password": {
               "type": "string"
             },
-            "protect_production": {
-              "type": "boolean"
+            "deployment_type": {
+              "enum": ["standard_protection", "all_deployments", "only_production_deployments", "only_preview_deployments"]
             }
           }
         }

@@ -20,7 +20,7 @@ type VercelPlugin struct {
 
 func NewVercelPlugin() schema.MachComposerPlugin {
 	state := &VercelPlugin{
-		provider:    "0.15.1", // Provider version of `vercel/vercel`
+		provider:    "1.12.0", // Provider version of `vercel/vercel`
 		siteConfigs: map[string]*VercelConfig{},
 	}
 	return plugin.NewPlugin(&schema.PluginSchema{
@@ -188,11 +188,11 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 		{{ renderProperty "vercel_project_manual_production_deployment" .ProjectConfig.ManualProductionDeployment }}
 		{{ renderProperty "vercel_project_protection_bypass_for_automation" .ProjectConfig.ProtectionBypassForAutomation }}
 		vercel_project_vercel_authentication = {
-			{{ renderProperty "protect_production" .ProjectConfig.VercelAuthentication.ProtectProduction }}
+			{{ renderProperty "deployment_type" .ProjectConfig.VercelAuthentication.DeploymentType }}
 		}
 		vercel_project_password_protection = {
 			{{ renderProperty "password" .ProjectConfig.PasswordProtection.Password }}
-			{{ renderProperty "protect_production" .ProjectConfig.PasswordProtection.ProtectProduction }}
+			{{ renderProperty "deployment_type" .ProjectConfig.PasswordProtection.DeploymentType }}
 		}
 		vercel_project_git_repository = {	
 			{{ renderProperty "production_branch" .ProjectConfig.GitRepository.ProductionBranch }}
