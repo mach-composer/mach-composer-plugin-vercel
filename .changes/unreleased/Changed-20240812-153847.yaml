@@ -1,0 +1,3 @@
+kind: Changed
+body: Property protect_production was changed into deployment_type
+time: 2024-08-12T15:38:47.141652+02:00
