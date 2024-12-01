@@ -7,7 +7,7 @@ require (
 	github.com/mach-composer/mach-composer-plugin-helpers v0.0.4
 	github.com/mach-composer/mach-composer-plugin-sdk v1.0.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225
 )
 
