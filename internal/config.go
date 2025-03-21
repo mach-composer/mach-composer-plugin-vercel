@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"sort"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/mach-composer/mach-composer-plugin-helpers/helpers"
 	"golang.org/x/exp/slices"
@@ -138,10 +140,7 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			cfg.PasswordProtection = c.PasswordProtection
 		}
 
-		if !slices.EqualFunc(c.EnvironmentVariables, o.EnvironmentVariables, EqualEnvironmentVariables) {
-			// Append missing environment variables
-			cfg.EnvironmentVariables = append(cfg.EnvironmentVariables, c.EnvironmentVariables...)
-		}
+		cfg.EnvironmentVariables = MergeEnvironmentVariables(c.EnvironmentVariables, o.EnvironmentVariables)
 
 		if !slices.EqualFunc(c.ProjectDomains, o.ProjectDomains, func(c, o ProjectDomain) bool {
 			return c.Domain == o.Domain && c.GitBranch == o.GitBranch && c.Redirect == o.Redirect && c.RedirectStatusCode == o.RedirectStatusCode
@@ -209,8 +208,67 @@ func (c *ProjectEnvironmentVariable) DisplayEnvironments() string {
 	return helpers.SerializeToHCL("environment", c.Environment)
 }
 
-func EqualEnvironmentVariables(c, o ProjectEnvironmentVariable) bool {
-	return c.Key == o.Key && c.Value == o.Value && slices.Equal(c.Environment, o.Environment)
+func MergeEnvironmentVariables(o []ProjectEnvironmentVariable, c []ProjectEnvironmentVariable) []ProjectEnvironmentVariable {
+	merged := make(map[string]map[string]string, len(o)+len(c))
+
+	// process parent environments
+	for _, env := range o {
+		// normalize environmet as default behavior for Vercel is to output to all environments
+		if len(env.Environment) == 0 {
+			env.Environment = []string{"development", "preview", "production"}
+		}
+		for _, environment := range env.Environment {
+			if _, exists := merged[env.Key]; !exists {
+				merged[env.Key] = make(map[string]string, 3)
+			}
+			merged[env.Key][environment] = env.Value
+		}
+	}
+
+	// process child environments
+	for _, env := range c {
+		// normalize environmet as default behavior for Vercel is to output to all environments
+		if len(env.Environment) == 0 {
+			env.Environment = []string{"development", "preview", "production"}
+		}
+		for _, environment := range env.Environment {
+			if _, exists := merged[env.Key]; !exists {
+				merged[env.Key] = make(map[string]string, 3)
+			}
+			merged[env.Key][environment] = env.Value
+		}
+	}
+
+	// Convert the map back to a slice of ProjectEnvironmentVariable
+	result := []ProjectEnvironmentVariable{}
+	for key, envMap := range merged {
+		// Group variables by value to consolidate environments
+		valueGroups := make(map[string][]string)
+
+		for environment, value := range envMap {
+			valueGroups[value] = append(valueGroups[value], environment)
+		}
+
+		// Create final environment variables with consolidated environments
+		for value, environments := range valueGroups {
+
+			// Sort environments for consistent order
+			sort.Strings(environments)
+
+			result = append(result, ProjectEnvironmentVariable{
+				Key:         key,
+				Value:       value,
+				Environment: environments,
+			})
+		}
+	}
+
+	// Sort the result by key for consistent order
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Key < result[j].Key
+	})
+
+	return result
 }
 
 type ProjectDomain struct {
