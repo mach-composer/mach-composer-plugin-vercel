@@ -232,7 +232,7 @@ func TestSiteComponentInheritance(t *testing.T) {
 	require.NoError(t, err)
 
 	err = plugin.SetSiteComponentConfig("my-site", "test-component", componentData)
-
+	require.NoError(t, err)
 	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
 	require.NoError(t, err)
 
@@ -435,6 +435,7 @@ func TestCompleteInheritance(t *testing.T) {
 	require.NoError(t, err)
 
 	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+	require.NoError(t, err)
 
 	fmt.Println(component)
 

@@ -117,7 +117,7 @@ func (p *VercelPlugin) RenderTerraformProviders(site string) (string, error) {
 func (p *VercelPlugin) getComponentConfig(site string, component string) (*VercelConfig, error) {
 	cfg, ok := p.siteComponentConfigs[site][component]
 	if !ok {
-		return nil, fmt.Errorf("No config found for site %s and component %s", site, component)
+		return nil, fmt.Errorf("no config found for site %s and component %s", site, component)
 	}
 	siteCfg, err := p.getSiteConfig(site)
 	if err == nil {
@@ -130,7 +130,7 @@ func (p *VercelPlugin) getComponentConfig(site string, component string) (*Verce
 func (p *VercelPlugin) getSiteConfig(site string) (*VercelConfig, error) {
 	cfg, ok := p.siteConfigs[site]
 	if !ok {
-		return nil, fmt.Errorf("No config found for site %s", site)
+		return nil, fmt.Errorf("no config found for site %s", site)
 	}
 	cfg = cfg.extendConfig(p.globalConfig)
 
