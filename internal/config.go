@@ -213,7 +213,7 @@ func MergeEnvironmentVariables(o []ProjectEnvironmentVariable, c []ProjectEnviro
 
 	// process parent environments
 	for _, env := range o {
-		// normalize environmet as default behavior for Vercel is to output to all environments
+		// normalize environment as default behavior for Vercel is to output to all environments
 		if len(env.Environment) == 0 {
 			env.Environment = []string{"development", "preview", "production"}
 		}
