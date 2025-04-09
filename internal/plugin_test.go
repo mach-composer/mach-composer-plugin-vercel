@@ -242,7 +242,148 @@ func TestSiteComponentInheritance(t *testing.T) {
 	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_2\"")
 	assert.Contains(t, component.Variables, "key = \"TEST_ENVIRONMENT_VARIABLE_3\"")
 	assert.Contains(t, component.Variables, "production_branch = \"production\"")
+}
 
+func TestGlobalInheritance(t *testing.T) {
+	globalEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_ENVIRONMENT_VARIABLE", Value: "testing", Environment: []string{}},
+		{Key: "TEST_EXTEND_VARIABLE", Value: "test", Environment: []string{"production"}},
+	}
+	globalVariables := make([]interface{}, len(globalEnvironmentVariables))
+	for i, s := range globalEnvironmentVariables {
+		globalVariables[i] = s
+	}
+	globalData := map[string]any{
+		"team_id":   "test-team",
+		"api_token": "test-token",
+		"project_config": map[string]any{
+			"manual_production_deployment":     true,
+			"protection_bypass_for_automation": true,
+			"vercel_authentication": map[string]any{
+				"deployment_type": "all_deployments",
+			},
+			"password_protection": map[string]any{
+				"password":        "MyPassword",
+				"deployment_type": "all_deployments",
+			},
+			"environment_variables": globalVariables,
+		},
+	}
+
+	siteEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_ENVIRONMENT_VARIABLE_2", Value: "testing", Environment: []string{"production", "preview"}},
+		{Key: "TEST_EXTEND_VARIABLE", Value: "testing", Environment: []string{"production", "preview", "development"}},
+	}
+	siteVariables := make([]interface{}, len(siteEnvironmentVariables))
+	for i, s := range siteEnvironmentVariables {
+		siteVariables[i] = s
+	}
+
+	siteData := map[string]any{
+		"team_id":   "test-team-override",
+		"api_token": "test-token-override",
+		"project_config": map[string]any{
+			"environment_variables": siteVariables,
+		},
+	}
+
+	plugin := NewVercelPlugin()
+
+	err := plugin.SetGlobalConfig(globalData)
+	require.NoError(t, err)
+
+	err = plugin.SetSiteConfig("my-site", siteData)
+	require.NoError(t, err)
+
+	result, err := plugin.RenderTerraformResources("my-site")
+	require.NoError(t, err)
+	assert.Contains(t, result, "api_token = \"test-token-override\"")
+
+	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+	require.NoError(t, err)
+
+	// Test overriding fields
+	assert.Contains(t, component.Variables, "vercel_team_id = \"test-team-override\"")
+
+	// Test whether environment variables get extended
+	assert.Contains(t, component.Variables, "environment = [\"development\", \"preview\", \"production\"]")
+	assert.Contains(t, component.Variables, "environment = [\"preview\", \"production\"]")
+	assert.Contains(t, component.Variables, "deployment_type = \"all_deployments\"")
+
+	assert.Contains(t, component.Variables, "environment")
+}
+
+func TestSitePriorityOverGlobalInheritance(t *testing.T) {
+	globalEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_ENVIRONMENT_VARIABLE", Value: "testing", Environment: []string{}},
+		{Key: "TEST_EXTEND_VARIABLE", Value: "test", Environment: []string{"production"}},
+	}
+	globalVariables := make([]interface{}, len(globalEnvironmentVariables))
+	for i, s := range globalEnvironmentVariables {
+		globalVariables[i] = s
+	}
+	globalData := map[string]any{
+		"team_id":   "test-team",
+		"api_token": "test-token",
+		"project_config": map[string]any{
+			"manual_production_deployment":     true,
+			"protection_bypass_for_automation": true,
+			"vercel_authentication": map[string]any{
+				"deployment_type": "standard_protection",
+			},
+			"password_protection": map[string]any{
+				"password":        "MyPassword",
+				"deployment_type": "standard_protection",
+			},
+			"environment_variables": globalVariables,
+		},
+	}
+
+	siteEnvironmentVariables := []ProjectEnvironmentVariable{
+		{Key: "TEST_ENVIRONMENT_VARIABLE_2", Value: "testing", Environment: []string{"production", "preview"}},
+		{Key: "TEST_EXTEND_VARIABLE", Value: "testing", Environment: []string{"production", "preview", "development"}},
+	}
+	siteVariables := make([]interface{}, len(siteEnvironmentVariables))
+	for i, s := range siteEnvironmentVariables {
+		siteVariables[i] = s
+	}
+
+	siteData := map[string]any{
+		"team_id":   "test-team-override",
+		"api_token": "test-token-override",
+		"project_config": map[string]any{
+			"environment_variables": siteVariables,
+			"vercel_authentication": map[string]any{
+				"deployment_type": "only_preview_deployments",
+			},
+		},
+	}
+
+	plugin := NewVercelPlugin()
+
+	err := plugin.SetGlobalConfig(globalData)
+	require.NoError(t, err)
+
+	err = plugin.SetSiteConfig("my-site", siteData)
+	require.NoError(t, err)
+
+	result, err := plugin.RenderTerraformResources("my-site")
+	require.NoError(t, err)
+	assert.Contains(t, result, "api_token = \"test-token-override\"")
+
+	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+	require.NoError(t, err)
+
+	// Test overriding fields
+	assert.Contains(t, component.Variables, "vercel_team_id = \"test-team-override\"")
+
+	// Test whether environment variables get extended
+	assert.Contains(t, component.Variables, "environment = [\"development\", \"preview\", \"production\"]")
+	assert.Contains(t, component.Variables, "environment = [\"preview\", \"production\"]")
+	assert.Contains(t, component.Variables, "deployment_type = \"standard_protection\"")
+	assert.Contains(t, component.Variables, "deployment_type = \"only_preview_deployments\"")
+
+	assert.Contains(t, component.Variables, "environment")
 }
 
 func TestExtendEnvironmentVariables(t *testing.T) {

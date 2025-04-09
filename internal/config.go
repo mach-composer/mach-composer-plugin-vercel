@@ -17,13 +17,12 @@ type VercelConfig struct {
 // Creates a new VercelConfig with default values
 func NewVercelConfig() VercelConfig {
 	return VercelConfig{
-
 		ProjectConfig: ProjectConfig{
 			PasswordProtection: PasswordProtection{
-				DeploymentType: "standard_protection",
+				DeploymentType: "",
 			},
 			VercelAuthentication: VercelAuthentication{
-				DeploymentType: "standard_protection",
+				DeploymentType: "",
 			},
 		},
 	}

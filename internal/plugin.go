@@ -147,6 +147,14 @@ func (p *VercelPlugin) getConfig(site string, component string) *VercelConfig {
 		}
 	}
 
+	if cfg.ProjectConfig.VercelAuthentication.DeploymentType == "" {
+		cfg.ProjectConfig.VercelAuthentication.DeploymentType = "standard_protection"
+	}
+
+	if cfg.ProjectConfig.PasswordProtection.DeploymentType == "" {
+		cfg.ProjectConfig.PasswordProtection.DeploymentType = "standard_protection"
+	}
+
 	// Default behavior for Vercel is to output to all environments
 	// Set this as default field unless manually filled
 	for i := range cfg.ProjectConfig.EnvironmentVariables {
