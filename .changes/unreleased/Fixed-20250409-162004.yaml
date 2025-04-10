@@ -1,3 +1,0 @@
-kind: Fixed
-body: components were not able to override authentication and password_protection types
-time: 2025-04-09T16:20:04.528768+02:00
