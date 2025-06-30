@@ -3,3 +3,6 @@ mach-composer-plugin-*
 
 # Coverage file
 *.out
+
+.idea/
+.claude/

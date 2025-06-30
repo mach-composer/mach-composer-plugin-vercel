@@ -138,7 +138,6 @@ func (p *VercelPlugin) getSiteConfig(site string) (*VercelConfig, error) {
 }
 
 func (p *VercelPlugin) getConfig(site string, component string) *VercelConfig {
-
 	cfg, err := p.getComponentConfig(site, component)
 	if err != nil {
 		cfg, err = p.getSiteConfig(site)
@@ -161,6 +160,12 @@ func (p *VercelPlugin) getConfig(site string, component string) *VercelConfig {
 		if len(cfg.ProjectConfig.EnvironmentVariables[i].Environment) == 0 {
 			cfg.ProjectConfig.EnvironmentVariables[i].Environment = []string{"development", "preview", "production"}
 		}
+	}
+
+	// keep existing behavior to false when omitted
+	if cfg.ProjectConfig.ManualProductionDeployment == nil {
+		defaultFalse := false
+		cfg.ProjectConfig.ManualProductionDeployment = &defaultFalse
 	}
 
 	return cfg

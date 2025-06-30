@@ -585,3 +585,133 @@ func TestCompleteInheritance(t *testing.T) {
 	assert.Contains(t, component.Variables, "production_branch = \"production\"")
 	assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = true")
 }
+
+func TestManualProductionDeploymentBehavior(t *testing.T) {
+	t.Run("defaults to false when not specified", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		data := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"framework": "nextjs",
+			},
+		}
+
+		err := plugin.SetSiteConfig("my-site", data)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = false")
+	})
+
+	t.Run("explicit false is preserved", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		data := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"framework":                    "nextjs",
+				"manual_production_deployment": false,
+			},
+		}
+
+		err := plugin.SetSiteConfig("my-site", data)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = false")
+	})
+
+	t.Run("inheritance: child overrides parent", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		globalData := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"manual_production_deployment": false,
+			},
+		}
+
+		siteData := map[string]any{
+			"project_config": map[string]any{
+				"manual_production_deployment": true,
+			},
+		}
+
+		err := plugin.SetGlobalConfig(globalData)
+		require.NoError(t, err)
+
+		err = plugin.SetSiteConfig("my-site", siteData)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = true")
+	})
+
+	t.Run("inheritance: inherits false when not specified", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		globalData := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"manual_production_deployment": false,
+			},
+		}
+
+		siteData := map[string]any{
+			"project_config": map[string]any{
+				"framework": "nextjs",
+			},
+		}
+
+		err := plugin.SetGlobalConfig(globalData)
+		require.NoError(t, err)
+
+		err = plugin.SetSiteConfig("my-site", siteData)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = false")
+	})
+
+	t.Run("inheritance: inherits true when not specified", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		globalData := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"manual_production_deployment": true,
+			},
+		}
+
+		siteData := map[string]any{
+			"project_config": map[string]any{
+				"framework": "nextjs",
+			},
+		}
+
+		err := plugin.SetGlobalConfig(globalData)
+		require.NoError(t, err)
+
+		err = plugin.SetSiteConfig("my-site", siteData)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		assert.Contains(t, component.Variables, "vercel_project_manual_production_deployment = true")
+	})
+}
