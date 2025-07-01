@@ -58,7 +58,7 @@ func (c *VercelConfig) extendConfig(o *VercelConfig) *VercelConfig {
 type ProjectConfig struct {
 	Name                          string                       `mapstructure:"name"`
 	Framework                     string                       `mapstructure:"framework"`
-	ManualProductionDeployment    bool                         `mapstructure:"manual_production_deployment"`
+	ManualProductionDeployment    *bool                        `mapstructure:"manual_production_deployment"`
 	ServerlessFunctionRegion      string                       `mapstructure:"serverless_function_region"`
 	EnvironmentVariables          []ProjectEnvironmentVariable `mapstructure:"environment_variables"`
 	GitRepository                 GitRepository                `mapstructure:"git_repository"`
@@ -113,7 +113,7 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			cfg.RootDirectory = c.RootDirectory
 		}
 
-		if c.ManualProductionDeployment != o.ManualProductionDeployment {
+		if c.ManualProductionDeployment != nil {
 			cfg.ManualProductionDeployment = c.ManualProductionDeployment
 		}
 
