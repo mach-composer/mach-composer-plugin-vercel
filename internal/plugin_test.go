@@ -809,4 +809,27 @@ func TestNodeVersionInheritance(t *testing.T) {
 		assert.Contains(t, component.Variables, "vercel_project_node_version = \"20.x\"")
 		assert.NotContains(t, component.Variables, "vercel_project_node_version = \"16.x\"")
 	})
+
+	t.Run("empty node_version is not rendered", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		siteData := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"framework": "nextjs",
+				// node_version is not specified
+			},
+		}
+
+		err := plugin.SetSiteConfig("my-site", siteData)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		// Should not contain node_version variable when empty
+		assert.Contains(t, component.Variables, "vercel_team_id = \"test-team\"")
+		assert.NotContains(t, component.Variables, "vercel_project_node_version")
+	})
 }
