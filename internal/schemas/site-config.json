@@ -63,6 +63,9 @@
         "root_directory": {
           "type": "string"
         },
+        "node_version": {
+          "type": "string"
+        },
         "domains": {
           "type": "array",
           "items": {

@@ -197,6 +197,7 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 		{{ renderProperty "vercel_project_build_command" .ProjectConfig.BuildCommand }}
 		{{ renderProperty "vercel_project_ignore_command" .ProjectConfig.IgnoreCommand }}
 		{{ renderProperty "vercel_project_root_directory" .ProjectConfig.RootDirectory }}
+		{{ renderProperty "vercel_project_node_version" .ProjectConfig.NodeVersion }}
 		{{ renderProperty "vercel_project_serverless_function_region" .ProjectConfig.ServerlessFunctionRegion }}
 		{{ renderProperty "vercel_project_manual_production_deployment" .ProjectConfig.ManualProductionDeployment }}
 		{{ renderProperty "vercel_project_protection_bypass_for_automation" .ProjectConfig.ProtectionBypassForAutomation }}
