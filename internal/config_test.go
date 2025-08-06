@@ -52,9 +52,10 @@ func TestMergeList(t *testing.T) {
 		var prodEntry, previewEntry ProjectEnvironmentVariable
 		for _, entry := range result {
 			if entry.Key == "API_URL" {
-				if entry.Value == "https://api.example.com" {
+				switch entry.Value {
+				case "https://api.example.com":
 					prodEntry = entry
-				} else if entry.Value == "https://api-test.example.com" {
+				case "https://api-test.example.com":
 					previewEntry = entry
 				}
 			}
