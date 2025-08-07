@@ -65,6 +65,7 @@ type ProjectConfig struct {
 	BuildCommand                  string                       `mapstructure:"build_command"`
 	IgnoreCommand                 string                       `mapstructure:"ignore_command"`
 	RootDirectory                 string                       `mapstructure:"root_directory"`
+	NodeVersion                   string                       `mapstructure:"node_version"`
 	ProjectDomains                []ProjectDomain              `mapstructure:"domains"`
 	ProtectionBypassForAutomation bool                         `mapstructure:"protection_bypass_for_automation"`
 	PasswordProtection            PasswordProtection           `mapstructure:"password_protection"`
@@ -80,6 +81,7 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 			BuildCommand:                  o.BuildCommand,
 			IgnoreCommand:                 o.IgnoreCommand,
 			RootDirectory:                 o.RootDirectory,
+			NodeVersion:                   o.NodeVersion,
 			ManualProductionDeployment:    o.ManualProductionDeployment,
 			EnvironmentVariables:          o.EnvironmentVariables,
 			GitRepository:                 o.GitRepository,
@@ -111,6 +113,10 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 
 		if c.RootDirectory != "" {
 			cfg.RootDirectory = c.RootDirectory
+		}
+
+		if c.NodeVersion != "" {
+			cfg.NodeVersion = c.NodeVersion
 		}
 
 		if c.ManualProductionDeployment != nil {

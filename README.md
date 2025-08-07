@@ -23,6 +23,7 @@ global:
     project_config:
         manual_production_deployment: false # Variable to help with setting up manual deployments in Terraform
         serverless_function_region: "fra1"
+        node_version: "20.x" # Default Node.js version for all projects
         environment_variables:
             - key: CUSTOM_GLOBAL_ENVIRONMENT_VARIABLE
               value: custom
@@ -42,6 +43,7 @@ sites:
                 name: "my-vercel-project"
                 framework: "nextjs"
                 manual_production_deployment: true
+                node_version: "22.x" # Specify Node.js version for builds
                 git_repository:
                   type: "github"
                   repo: "mach-composer/my-vercel-project"
@@ -77,6 +79,7 @@ resource "vercel_project" "project" {
 
   build_command  = var.vercel_project_build_command
   root_directory = var.vercel_project_root_directory
+  node_version   = var.vercel_project_node_version
 
   lifecycle {
     # never accidentally destroy this resource
