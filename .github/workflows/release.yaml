@@ -8,10 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
@@ -33,7 +33,7 @@ jobs:
           echo RELEASE_NOTES_PATH=.changes/${{ steps.latest.outputs.output }}.md >> $GITHUB_ENV
 
       - name: Create release
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           args: --clean --release-notes=${{ env.RELEASE_NOTES_PATH }} --skip=validate
         env:
@@ -42,7 +42,7 @@ jobs:
           GOPATH: ${{ env.GOPATH }}
 
       - name: Upload release
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mach-composer-plugin-vercel
           path: dist/*
