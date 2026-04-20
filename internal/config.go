@@ -1,7 +1,10 @@
 package internal
 
 import (
+	"encoding/json"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/mach-composer/mach-composer-plugin-helpers/helpers"
@@ -201,92 +204,196 @@ type VercelAuthentication struct {
 	DeploymentType string `mapstructure:"deployment_type"`
 }
 
+var defaultProjectEnvironmentVariableTargets = []string{"development", "preview", "production"}
+
 type ProjectEnvironmentVariable struct {
-	Key                    string   `mapstructure:"key"`
-	Value                  string   `mapstructure:"value"`
-	Environment            []string `mapstructure:"environment"`
-	Comment                string   `mapstructure:"comment"`
-	CustomEnvironmentIDs   []string `mapstructure:"custom_environment_ids"`
-	GitBranch              string   `mapstructure:"git_branch"`
-	Sensitive              bool     `mapstructure:"sensitive"`
-	Target                 []string `mapstructure:"target"`
+	Key       string   `mapstructure:"key"`
+	Value     string   `mapstructure:"value"`
+	Target    []string `mapstructure:"target"`
+	Comment   *string  `mapstructure:"comment"`
+	GitBranch *string  `mapstructure:"git_branch"`
+	Sensitive *bool    `mapstructure:"sensitive"`
 }
 
-// Returns a HCL-friendly version of the list of environments which are
-// encapsulated by quotes and are comma separated
-func (c *ProjectEnvironmentVariable) DisplayEnvironments() string {
-	return helpers.SerializeToHCL("environment", c.Environment)
+func (c ProjectEnvironmentVariable) normalize() ProjectEnvironmentVariable {
+	normalized := c
+
+	normalized.Comment = normalizeOptionalString(normalized.Comment)
+	normalized.GitBranch = normalizeOptionalString(normalized.GitBranch)
+
+	if len(normalized.Target) == 0 {
+		normalized.Target = append([]string(nil), defaultProjectEnvironmentVariableTargets...)
+	} else {
+		normalized.Target = append([]string(nil), normalized.Target...)
+	}
+	sort.Strings(normalized.Target)
+
+	return normalized
 }
 
-func (c *ProjectEnvironmentVariable) DisplayTarget() string {
+func (c ProjectEnvironmentVariable) Validate() error {
+	if c.GitBranch == nil {
+		return nil
+	}
+
+	if len(c.Target) != 1 || c.Target[0] != "preview" {
+		return &InvalidEnvironmentVariableError{
+			Key:     c.Key,
+			Message: "git_branch can only be used when target is [\"preview\"]",
+		}
+	}
+
+	return nil
+}
+
+func (c ProjectEnvironmentVariable) DisplayTarget() string {
+	if len(c.Target) == 0 {
+		return ""
+	}
+
 	return helpers.SerializeToHCL("target", c.Target)
 }
 
-func (c *ProjectEnvironmentVariable) DisplayCustomEnvironmentIDs() string {
-	return helpers.SerializeToHCL("custom_environment_ids", c.CustomEnvironmentIDs)
+func (c ProjectEnvironmentVariable) DisplayComment() string {
+	if c.Comment == nil || *c.Comment == "" {
+		return ""
+	}
+
+	return helpers.SerializeToHCL("comment", *c.Comment)
+}
+
+func (c ProjectEnvironmentVariable) DisplayGitBranch() string {
+	if c.GitBranch == nil || *c.GitBranch == "" {
+		return ""
+	}
+
+	return helpers.SerializeToHCL("git_branch", *c.GitBranch)
+}
+
+func (c ProjectEnvironmentVariable) DisplaySensitive() string {
+	if c.Sensitive == nil {
+		return ""
+	}
+
+	return helpers.SerializeToHCL("sensitive", *c.Sensitive)
 }
 
 func MergeEnvironmentVariables(o []ProjectEnvironmentVariable, c []ProjectEnvironmentVariable) []ProjectEnvironmentVariable {
-	merged := make(map[string]map[string]string, len(o)+len(c))
+	merged := make(map[string]map[string]ProjectEnvironmentVariable, len(o)+len(c))
 
-	// process parent environments
-	for _, env := range o {
-		// normalize environment as default behavior for Vercel is to output to all environments
-		if len(env.Environment) == 0 {
-			env.Environment = []string{"development", "preview", "production"}
-		}
-		for _, environment := range env.Environment {
-			if _, exists := merged[env.Key]; !exists {
-				merged[env.Key] = make(map[string]string, 3)
+	merge := func(items []ProjectEnvironmentVariable) {
+		for _, env := range items {
+			normalized := env.normalize()
+			if _, exists := merged[normalized.Key]; !exists {
+				merged[normalized.Key] = make(map[string]ProjectEnvironmentVariable)
 			}
-			merged[env.Key][environment] = env.Value
+
+			for _, target := range normalized.Target {
+				entry := normalized
+				entry.Target = nil
+				merged[normalized.Key][target] = entry
+			}
 		}
 	}
 
-	// process child environments
-	for _, env := range c {
-		// normalize environment as default behavior for Vercel is to output to all environments
-		if len(env.Environment) == 0 {
-			env.Environment = []string{"development", "preview", "production"}
-		}
-		for _, environment := range env.Environment {
-			if _, exists := merged[env.Key]; !exists {
-				merged[env.Key] = make(map[string]string, 3)
-			}
-			merged[env.Key][environment] = env.Value
-		}
-	}
+	merge(o)
+	merge(c)
 
-	// Convert the map back to a slice of ProjectEnvironmentVariable
 	result := []ProjectEnvironmentVariable{}
-	for key, envMap := range merged {
-		// Group variables by value to consolidate environments
-		valueGroups := make(map[string][]string)
+	keys := make([]string, 0, len(merged))
+	for key := range merged {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
 
-		for environment, value := range envMap {
-			valueGroups[value] = append(valueGroups[value], environment)
+	for _, key := range keys {
+		grouped := make(map[string]ProjectEnvironmentVariable)
+		targets := make([]string, 0, len(merged[key]))
+		for target := range merged[key] {
+			targets = append(targets, target)
+		}
+		sort.Strings(targets)
+
+		for _, target := range targets {
+			env := merged[key][target]
+			signature := env.payloadSignature()
+			group, exists := grouped[signature]
+			if !exists {
+				group = env
+			}
+			group.Target = append(group.Target, target)
+			grouped[signature] = group
 		}
 
-		// Create final environment variables with consolidated environments
-		for value, environments := range valueGroups {
+		signatures := make([]string, 0, len(grouped))
+		for signature := range grouped {
+			signatures = append(signatures, signature)
+		}
+		sort.Strings(signatures)
 
-			// Sort environments for consistent order
-			sort.Strings(environments)
-
-			result = append(result, ProjectEnvironmentVariable{
-				Key:         key,
-				Value:       value,
-				Environment: environments,
-			})
+		for _, signature := range signatures {
+			env := grouped[signature]
+			sort.Strings(env.Target)
+			result = append(result, env)
 		}
 	}
 
-	// Sort the result by key for consistent order
 	sort.Slice(result, func(i, j int) bool {
-		return result[i].Key < result[j].Key
+		if result[i].Key != result[j].Key {
+			return result[i].Key < result[j].Key
+		}
+		if result[i].Value != result[j].Value {
+			return result[i].Value < result[j].Value
+		}
+		if diff := compareStringSlices(result[i].Target, result[j].Target); diff != 0 {
+			return diff < 0
+		}
+		return result[i].payloadSignature() < result[j].payloadSignature()
 	})
 
 	return result
+}
+
+type InvalidEnvironmentVariableError struct {
+	Key     string
+	Message string
+}
+
+func (e *InvalidEnvironmentVariableError) Error() string {
+	return "invalid project environment variable " + strconv.Quote(e.Key) + ": " + e.Message
+}
+
+func (c ProjectEnvironmentVariable) payloadSignature() string {
+	payload, err := json.Marshal(struct {
+		Key       string  `json:"key"`
+		Value     string  `json:"value"`
+		Comment   *string `json:"comment,omitempty"`
+		GitBranch *string `json:"git_branch,omitempty"`
+		Sensitive *bool   `json:"sensitive,omitempty"`
+	}{
+		Key:       c.Key,
+		Value:     c.Value,
+		Comment:   c.Comment,
+		GitBranch: c.GitBranch,
+		Sensitive: c.Sensitive,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return string(payload)
+}
+
+func compareStringSlices(a []string, b []string) int {
+	return strings.Compare(strings.Join(a, ","), strings.Join(b, ","))
+}
+
+func normalizeOptionalString(value *string) *string {
+	if value == nil || *value == "" {
+		return nil
+	}
+
+	return value
 }
 
 type ProjectDomain struct {

@@ -1,0 +1,3 @@
+kind: Fixed
+body: fix rendering optional arguments incorrectly, remove environment completely in favor of target
+time: 2026-04-20T14:32:06.542839+02:00
