@@ -172,6 +172,14 @@ func (p *VercelPlugin) getConfig(site string, component string) (*VercelConfig, 
 		cfg.ProjectConfig.ManualProductionDeployment = &defaultFalse
 	}
 
+	if cfg == nil {
+		return nil, nil
+	}
+
+	if cfg.ProjectConfig.ProtectionBypassForAutomationSecret != nil && *cfg.ProjectConfig.ProtectionBypassForAutomationSecret == "" {
+		cfg.ProjectConfig.ProtectionBypassForAutomationSecret = nil
+	}
+
 	if err := cfg.validate(); err != nil {
 		return nil, err
 	}
@@ -222,6 +230,7 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 		{{ renderProperty "vercel_project_serverless_function_region" .ProjectConfig.ServerlessFunctionRegion }}
 		{{ renderProperty "vercel_project_manual_production_deployment" .ProjectConfig.ManualProductionDeployment }}
 		{{ renderProperty "vercel_project_protection_bypass_for_automation" .ProjectConfig.ProtectionBypassForAutomation }}
+		{{ if and .ProjectConfig.ProtectionBypassForAutomation .ProjectConfig.ProtectionBypassForAutomationSecret }}{{ renderProperty "vercel_project_protection_bypass_for_automation_secret" .ProjectConfig.ProtectionBypassForAutomationSecret }}{{ end }}
 		vercel_project_vercel_authentication = {
 			{{ renderProperty "deployment_type" .ProjectConfig.VercelAuthentication.DeploymentType }}
 		}
