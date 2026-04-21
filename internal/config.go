@@ -59,39 +59,41 @@ func (c *VercelConfig) extendConfig(o *VercelConfig) *VercelConfig {
 }
 
 type ProjectConfig struct {
-	Name                          string                       `mapstructure:"name"`
-	Framework                     string                       `mapstructure:"framework"`
-	ManualProductionDeployment    *bool                        `mapstructure:"manual_production_deployment"`
-	ServerlessFunctionRegion      string                       `mapstructure:"serverless_function_region"`
-	EnvironmentVariables          []ProjectEnvironmentVariable `mapstructure:"environment_variables"`
-	GitRepository                 GitRepository                `mapstructure:"git_repository"`
-	BuildCommand                  string                       `mapstructure:"build_command"`
-	IgnoreCommand                 string                       `mapstructure:"ignore_command"`
-	RootDirectory                 string                       `mapstructure:"root_directory"`
-	NodeVersion                   string                       `mapstructure:"node_version"`
-	ProjectDomains                []ProjectDomain              `mapstructure:"domains"`
-	ProtectionBypassForAutomation bool                         `mapstructure:"protection_bypass_for_automation"`
-	PasswordProtection            PasswordProtection           `mapstructure:"password_protection"`
-	VercelAuthentication          VercelAuthentication         `mapstructure:"vercel_authentication"`
+	Name                                string                       `mapstructure:"name"`
+	Framework                           string                       `mapstructure:"framework"`
+	ManualProductionDeployment          *bool                        `mapstructure:"manual_production_deployment"`
+	ServerlessFunctionRegion            string                       `mapstructure:"serverless_function_region"`
+	EnvironmentVariables                []ProjectEnvironmentVariable `mapstructure:"environment_variables"`
+	GitRepository                       GitRepository                `mapstructure:"git_repository"`
+	BuildCommand                        string                       `mapstructure:"build_command"`
+	IgnoreCommand                       string                       `mapstructure:"ignore_command"`
+	RootDirectory                       string                       `mapstructure:"root_directory"`
+	NodeVersion                         string                       `mapstructure:"node_version"`
+	ProjectDomains                      []ProjectDomain              `mapstructure:"domains"`
+	ProtectionBypassForAutomation       bool                         `mapstructure:"protection_bypass_for_automation"`
+	ProtectionBypassForAutomationSecret *string                      `mapstructure:"protection_bypass_for_automation_secret"`
+	PasswordProtection                  PasswordProtection           `mapstructure:"password_protection"`
+	VercelAuthentication                VercelAuthentication         `mapstructure:"vercel_authentication"`
 }
 
 func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 	if o != nil && o != (&ProjectConfig{}) {
 		cfg := &ProjectConfig{
-			Name:                          o.Name,
-			Framework:                     o.Framework,
-			ServerlessFunctionRegion:      o.ServerlessFunctionRegion,
-			BuildCommand:                  o.BuildCommand,
-			IgnoreCommand:                 o.IgnoreCommand,
-			RootDirectory:                 o.RootDirectory,
-			NodeVersion:                   o.NodeVersion,
-			ManualProductionDeployment:    o.ManualProductionDeployment,
-			EnvironmentVariables:          o.EnvironmentVariables,
-			GitRepository:                 o.GitRepository,
-			ProtectionBypassForAutomation: o.ProtectionBypassForAutomation,
-			PasswordProtection:            o.PasswordProtection,
-			VercelAuthentication:          o.VercelAuthentication,
-			ProjectDomains:                o.ProjectDomains,
+			Name:                                o.Name,
+			Framework:                           o.Framework,
+			ServerlessFunctionRegion:            o.ServerlessFunctionRegion,
+			BuildCommand:                        o.BuildCommand,
+			IgnoreCommand:                       o.IgnoreCommand,
+			RootDirectory:                       o.RootDirectory,
+			NodeVersion:                         o.NodeVersion,
+			ManualProductionDeployment:          o.ManualProductionDeployment,
+			EnvironmentVariables:                o.EnvironmentVariables,
+			GitRepository:                       o.GitRepository,
+			ProtectionBypassForAutomation:       o.ProtectionBypassForAutomation,
+			ProtectionBypassForAutomationSecret: o.ProtectionBypassForAutomationSecret,
+			PasswordProtection:                  o.PasswordProtection,
+			VercelAuthentication:                o.VercelAuthentication,
+			ProjectDomains:                      o.ProjectDomains,
 		}
 
 		if c.Name != "" {
@@ -138,6 +140,10 @@ func (c *ProjectConfig) extendConfig(o *ProjectConfig) *ProjectConfig {
 
 		if c.ProtectionBypassForAutomation {
 			cfg.ProtectionBypassForAutomation = c.ProtectionBypassForAutomation
+		}
+
+		if c.ProtectionBypassForAutomationSecret != nil {
+			cfg.ProtectionBypassForAutomationSecret = c.ProtectionBypassForAutomationSecret
 		}
 
 		if c.VercelAuthentication.DeploymentType != "" {

@@ -104,6 +104,9 @@
         "protection_bypass_for_automation": {
           "type": "boolean"
         },
+        "protection_bypass_for_automation_secret": {
+          "type": "string"
+        },
         "vercel_authentication": {
           "type": "object",
           "properties": {

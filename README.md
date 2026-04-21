@@ -48,6 +48,8 @@ sites:
                 name: "my-vercel-project"
                 framework: "nextjs"
                 manual_production_deployment: true
+                protection_bypass_for_automation: true
+                protection_bypass_for_automation_secret: "12345678901234567890123456789012" # Optional. Omit to let Vercel generate one.
                 node_version: "22.x" # Specify Node.js version for builds
                 git_repository:
                   type: "github"
@@ -86,6 +88,8 @@ resource "vercel_project" "project" {
   build_command  = var.vercel_project_build_command
   root_directory = var.vercel_project_root_directory
   node_version   = var.vercel_project_node_version
+  protection_bypass_for_automation        = var.vercel_project_protection_bypass_for_automation
+  protection_bypass_for_automation_secret = var.vercel_project_protection_bypass_for_automation_secret
 
   lifecycle {
     # never accidentally destroy this resource

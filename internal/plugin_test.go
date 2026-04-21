@@ -64,9 +64,10 @@ func TestSetVercelConfig(t *testing.T) {
 				"type":              "github",
 				"repo":              "mach-composer/my-project",
 			},
-			"environment_variables":            variables,
-			"domains":                          domains,
-			"protection_bypass_for_automation": true,
+			"environment_variables":                   variables,
+			"domains":                                 domains,
+			"protection_bypass_for_automation":        true,
+			"protection_bypass_for_automation_secret": "12345678901234567890123456789012",
 			"vercel_authentication": map[string]any{
 				"deployment_type": "only_preview_deployments",
 			},
@@ -106,6 +107,7 @@ func TestSetVercelConfig(t *testing.T) {
 	assert.Contains(t, component.Variables, "type = \"github\"")
 	assert.Contains(t, component.Variables, "repo = \"mach-composer/my-project\"")
 	assert.Contains(t, component.Variables, "protection_bypass_for_automation = true")
+	assert.Contains(t, component.Variables, "protection_bypass_for_automation_secret = \"12345678901234567890123456789012\"")
 	assert.Contains(t, component.Variables, "deployment_type = \"only_preview_deployments\"")
 	assert.Contains(t, component.Variables, "password = \"MyPassword\"")
 
@@ -1004,5 +1006,111 @@ func TestNodeVersionInheritance(t *testing.T) {
 		// Should not contain node_version variable when empty
 		assert.Contains(t, component.Variables, "vercel_team_id = \"test-team\"")
 		assert.NotContains(t, component.Variables, "vercel_project_node_version")
+	})
+}
+
+func TestProtectionBypassForAutomationSecret(t *testing.T) {
+	t.Run("secret is omitted when not set", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		siteData := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"protection_bypass_for_automation": true,
+			},
+		}
+
+		err := plugin.SetSiteConfig("my-site", siteData)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		assert.Contains(t, component.Variables, "vercel_project_protection_bypass_for_automation = true")
+		assert.NotContains(t, component.Variables, "vercel_project_protection_bypass_for_automation_secret")
+	})
+
+	t.Run("secret is omitted when automation bypass is disabled", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		siteData := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"protection_bypass_for_automation_secret": "12345678901234567890123456789012",
+			},
+		}
+
+		err := plugin.SetSiteConfig("my-site", siteData)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		assert.Contains(t, component.Variables, "vercel_project_protection_bypass_for_automation = false")
+		assert.NotContains(t, component.Variables, "vercel_project_protection_bypass_for_automation_secret")
+	})
+
+	t.Run("site secret overrides inherited secret", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		globalData := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"protection_bypass_for_automation":        true,
+				"protection_bypass_for_automation_secret": "12345678901234567890123456789012",
+			},
+		}
+
+		siteData := map[string]any{
+			"project_config": map[string]any{
+				"protection_bypass_for_automation_secret": "abcdefghijklmnopqrstuvwxyz123456",
+			},
+		}
+
+		err := plugin.SetGlobalConfig(globalData)
+		require.NoError(t, err)
+
+		err = plugin.SetSiteConfig("my-site", siteData)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		assert.Contains(t, component.Variables, "vercel_project_protection_bypass_for_automation_secret = \"abcdefghijklmnopqrstuvwxyz123456\"")
+		assert.NotContains(t, component.Variables, "vercel_project_protection_bypass_for_automation_secret = \"12345678901234567890123456789012\"")
+	})
+
+	t.Run("empty secret clears inherited secret", func(t *testing.T) {
+		plugin := NewVercelPlugin()
+
+		globalData := map[string]any{
+			"team_id":   "test-team",
+			"api_token": "test-token",
+			"project_config": map[string]any{
+				"protection_bypass_for_automation":        true,
+				"protection_bypass_for_automation_secret": "12345678901234567890123456789012",
+			},
+		}
+
+		siteData := map[string]any{
+			"project_config": map[string]any{
+				"protection_bypass_for_automation_secret": "",
+			},
+		}
+
+		err := plugin.SetGlobalConfig(globalData)
+		require.NoError(t, err)
+
+		err = plugin.SetSiteConfig("my-site", siteData)
+		require.NoError(t, err)
+
+		component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+		require.NoError(t, err)
+
+		assert.Contains(t, component.Variables, "vercel_project_protection_bypass_for_automation = true")
+		assert.NotContains(t, component.Variables, "vercel_project_protection_bypass_for_automation_secret")
 	})
 }
