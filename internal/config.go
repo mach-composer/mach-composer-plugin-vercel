@@ -246,6 +246,32 @@ func (c ProjectEnvironmentVariable) Validate() error {
 	return nil
 }
 
+func (c ProjectEnvironmentVariable) validateSensitive() error {
+	if c.Sensitive == nil || !*c.Sensitive {
+		return nil
+	}
+	targets := c.Target
+	if len(targets) == 0 {
+		targets = defaultProjectEnvironmentVariableTargets
+	}
+	if slices.Contains(targets, "development") {
+		return &InvalidEnvironmentVariableError{
+			Key:     c.Key,
+			Message: "target cannot include \"development\" when sensitive is true",
+		}
+	}
+	return nil
+}
+
+func (c *VercelConfig) validate() error {
+	for _, env := range c.ProjectConfig.EnvironmentVariables {
+		if err := env.validateSensitive(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (c ProjectEnvironmentVariable) DisplayTarget() string {
 	if len(c.Target) == 0 {
 		return ""

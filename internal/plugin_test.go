@@ -786,6 +786,111 @@ func TestManualProductionDeploymentBehavior(t *testing.T) {
 	})
 }
 
+func TestMergePreservesEnvVarFields(t *testing.T) {
+	globalVars := []ProjectEnvironmentVariable{
+		{Key: "SECRET", Value: "g", Sensitive: boolPtr(true), Comment: stringPtr("global"), GitBranch: stringPtr("main"), Target: []string{"preview"}},
+	}
+	siteVars := []ProjectEnvironmentVariable{
+		{Key: "OTHER", Value: "s", Sensitive: boolPtr(true), Target: []string{"preview"}, Comment: stringPtr("site-only")},
+	}
+
+	toIface := func(in []ProjectEnvironmentVariable) []interface{} {
+		out := make([]interface{}, len(in))
+		for i, v := range in {
+			out[i] = v
+		}
+		return out
+	}
+
+	globalData := map[string]any{
+		"team_id":   "t",
+		"api_token": "a",
+		"project_config": map[string]any{
+			"environment_variables": toIface(globalVars),
+		},
+	}
+	siteData := map[string]any{
+		"project_config": map[string]any{
+			"environment_variables": toIface(siteVars),
+		},
+	}
+
+	plugin := NewVercelPlugin()
+	require.NoError(t, plugin.SetGlobalConfig(globalData))
+	require.NoError(t, plugin.SetSiteConfig("my-site", siteData))
+
+	component, err := plugin.RenderTerraformComponent("my-site", "test-component")
+	require.NoError(t, err)
+
+	// Global-only entry keeps all its fields through the merge
+	assert.Contains(t, component.Variables, "key = \"SECRET\"")
+	assert.Contains(t, component.Variables, "comment = \"global\"")
+	assert.Contains(t, component.Variables, "git_branch = \"main\"")
+
+	// Site-only entry keeps its fields too
+	assert.Contains(t, component.Variables, "key = \"OTHER\"")
+	assert.Contains(t, component.Variables, "comment = \"site-only\"")
+	assert.Contains(t, component.Variables, "target = [\"preview\"]")
+}
+
+func TestSensitiveTargetValidationAfterMerge(t *testing.T) {
+	globalVars := []ProjectEnvironmentVariable{
+		{Key: "SECRET", Value: "v", Sensitive: boolPtr(true), Target: []string{"production"}},
+	}
+	siteVars := []ProjectEnvironmentVariable{
+		{Key: "SECRET", Value: "v", Sensitive: boolPtr(true), Target: []string{"development"}},
+	}
+
+	toIface := func(in []ProjectEnvironmentVariable) []interface{} {
+		out := make([]interface{}, len(in))
+		for i, v := range in {
+			out[i] = v
+		}
+		return out
+	}
+
+	plugin := NewVercelPlugin()
+	require.NoError(t, plugin.SetGlobalConfig(map[string]any{
+		"team_id":   "t",
+		"api_token": "a",
+		"project_config": map[string]any{
+			"environment_variables": toIface(globalVars),
+		},
+	}))
+	// Site SetSiteConfig itself should fail because siteVars already violates at its own level
+	err := plugin.SetSiteConfig("my-site", map[string]any{
+		"project_config": map[string]any{
+			"environment_variables": toIface(siteVars),
+		},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "SECRET")
+}
+
+func TestSensitiveTargetValidation(t *testing.T) {
+	envVars := []ProjectEnvironmentVariable{
+		{Key: "SECRET", Value: "s", Sensitive: boolPtr(true), Target: []string{"development", "production"}},
+	}
+	variables := make([]interface{}, len(envVars))
+	for i, s := range envVars {
+		variables[i] = s
+	}
+
+	data := map[string]any{
+		"team_id":   "t",
+		"api_token": "a",
+		"project_config": map[string]any{
+			"environment_variables": variables,
+		},
+	}
+
+	plugin := NewVercelPlugin()
+	err := plugin.SetSiteConfig("my-site", data)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "SECRET")
+	assert.Contains(t, err.Error(), "development")
+}
+
 func TestNodeVersionInheritance(t *testing.T) {
 	t.Run("node_version set at site level", func(t *testing.T) {
 		plugin := NewVercelPlugin()
