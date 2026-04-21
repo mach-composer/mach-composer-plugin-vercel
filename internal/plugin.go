@@ -166,14 +166,6 @@ func (p *VercelPlugin) getConfig(site string, component string) (*VercelConfig, 
 		cfg.ProjectConfig.PasswordProtection.DeploymentType = "standard_protection"
 	}
 
-	// Default behavior for Vercel is to output to all environments
-	// Set this as default field unless manually filled
-	for i := range cfg.ProjectConfig.EnvironmentVariables {
-		if len(cfg.ProjectConfig.EnvironmentVariables[i].Environment) == 0 {
-			cfg.ProjectConfig.EnvironmentVariables[i].Environment = []string{"development", "preview", "production"}
-		}
-	}
-
 	// keep existing behavior to false when omitted
 	if cfg.ProjectConfig.ManualProductionDeployment == nil {
 		defaultFalse := false
@@ -212,6 +204,13 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 		return nil, nil
 	}
 
+	for i := range cfg.ProjectConfig.EnvironmentVariables {
+		cfg.ProjectConfig.EnvironmentVariables[i] = cfg.ProjectConfig.EnvironmentVariables[i].normalize()
+		if err := cfg.ProjectConfig.EnvironmentVariables[i].Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	template := `
 		{{ renderProperty "vercel_team_id" .TeamID }}
 		{{ renderProperty "vercel_project_name" .ProjectConfig.Name }}
@@ -239,12 +238,10 @@ func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (
 			{
 				{{ renderProperty "key" .Key }}
 				{{ renderProperty "value" .Value }}
-				{{ .DisplayEnvironments }}
-				{{ renderProperty "comment" .Comment }}
-				{{ .DisplayCustomEnvironmentIDs }}
-				{{ renderProperty "git_branch" .GitBranch }}
-				{{ renderProperty "sensitive" .Sensitive }}
 				{{ .DisplayTarget }}
+				{{ .DisplayComment }}
+				{{ .DisplayGitBranch }}
+				{{ .DisplaySensitive }}
 			},{{end}}
 		]
 		vercel_project_domains = [{{range .ProjectConfig.ProjectDomains }}
