@@ -1,7 +1,9 @@
 package internal
 
 import (
+	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/mach-composer/mach-composer-plugin-helpers/helpers"
@@ -212,6 +214,22 @@ type ProjectEnvironmentVariable struct {
 	Target                 []string `mapstructure:"target"`
 }
 
+func (c *ProjectEnvironmentVariable) validate() error {
+	if c.Sensitive && slices.Contains(c.Target, "development") {
+		return fmt.Errorf("environment variable %q: target cannot include \"development\" when sensitive is true", c.Key)
+	}
+	return nil
+}
+
+func (c *VercelConfig) validate() error {
+	for _, env := range c.ProjectConfig.EnvironmentVariables {
+		if err := env.validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Returns a HCL-friendly version of the list of environments which are
 // encapsulated by quotes and are comma separated
 func (c *ProjectEnvironmentVariable) DisplayEnvironments() string {
@@ -227,63 +245,84 @@ func (c *ProjectEnvironmentVariable) DisplayCustomEnvironmentIDs() string {
 }
 
 func MergeEnvironmentVariables(o []ProjectEnvironmentVariable, c []ProjectEnvironmentVariable) []ProjectEnvironmentVariable {
-	merged := make(map[string]map[string]string, len(o)+len(c))
+	type envKey struct {
+		key string
+		env string
+	}
+	winners := map[envKey]ProjectEnvironmentVariable{}
 
-	// process parent environments
-	for _, env := range o {
-		// normalize environment as default behavior for Vercel is to output to all environments
-		if len(env.Environment) == 0 {
-			env.Environment = []string{"development", "preview", "production"}
-		}
-		for _, environment := range env.Environment {
-			if _, exists := merged[env.Key]; !exists {
-				merged[env.Key] = make(map[string]string, 3)
+	apply := func(src []ProjectEnvironmentVariable) {
+		for _, entry := range src {
+			envs := entry.Environment
+			if len(envs) == 0 {
+				envs = []string{"development", "preview", "production"}
 			}
-			merged[env.Key][environment] = env.Value
-		}
-	}
-
-	// process child environments
-	for _, env := range c {
-		// normalize environment as default behavior for Vercel is to output to all environments
-		if len(env.Environment) == 0 {
-			env.Environment = []string{"development", "preview", "production"}
-		}
-		for _, environment := range env.Environment {
-			if _, exists := merged[env.Key]; !exists {
-				merged[env.Key] = make(map[string]string, 3)
+			for _, e := range envs {
+				winners[envKey{entry.Key, e}] = entry
 			}
-			merged[env.Key][environment] = env.Value
 		}
 	}
+	apply(o)
+	apply(c)
 
-	// Convert the map back to a slice of ProjectEnvironmentVariable
-	result := []ProjectEnvironmentVariable{}
-	for key, envMap := range merged {
-		// Group variables by value to consolidate environments
-		valueGroups := make(map[string][]string)
+	// Group entries whose non-Environment fields match so we can consolidate
+	// the environment list for each unique (value, metadata) combination.
+	type groupKey struct {
+		key       string
+		value     string
+		comment   string
+		gitBranch string
+		sensitive bool
+		target    string
+		customIDs string
+	}
+	joinKey := func(parts []string) string { return strings.Join(parts, "\x00") }
 
-		for environment, value := range envMap {
-			valueGroups[value] = append(valueGroups[value], environment)
+	envsByGroup := map[groupKey]map[string]struct{}{}
+	sample := map[groupKey]ProjectEnvironmentVariable{}
+
+	for ek, entry := range winners {
+		gk := groupKey{
+			key:       entry.Key,
+			value:     entry.Value,
+			comment:   entry.Comment,
+			gitBranch: entry.GitBranch,
+			sensitive: entry.Sensitive,
+			target:    joinKey(entry.Target),
+			customIDs: joinKey(entry.CustomEnvironmentIDs),
 		}
-
-		// Create final environment variables with consolidated environments
-		for value, environments := range valueGroups {
-
-			// Sort environments for consistent order
-			sort.Strings(environments)
-
-			result = append(result, ProjectEnvironmentVariable{
-				Key:         key,
-				Value:       value,
-				Environment: environments,
-			})
+		if envsByGroup[gk] == nil {
+			envsByGroup[gk] = map[string]struct{}{}
+			sample[gk] = entry
 		}
+		envsByGroup[gk][ek.env] = struct{}{}
 	}
 
-	// Sort the result by key for consistent order
+	result := make([]ProjectEnvironmentVariable, 0, len(envsByGroup))
+	for gk, envSet := range envsByGroup {
+		envs := make([]string, 0, len(envSet))
+		for e := range envSet {
+			envs = append(envs, e)
+		}
+		sort.Strings(envs)
+		s := sample[gk]
+		result = append(result, ProjectEnvironmentVariable{
+			Key:                  s.Key,
+			Value:                s.Value,
+			Environment:          envs,
+			Comment:              s.Comment,
+			CustomEnvironmentIDs: s.CustomEnvironmentIDs,
+			GitBranch:            s.GitBranch,
+			Sensitive:            s.Sensitive,
+			Target:               s.Target,
+		})
+	}
+
 	sort.Slice(result, func(i, j int) bool {
-		return result[i].Key < result[j].Key
+		if result[i].Key != result[j].Key {
+			return result[i].Key < result[j].Key
+		}
+		return result[i].Value < result[j].Value
 	})
 
 	return result

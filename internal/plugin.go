@@ -54,6 +54,9 @@ func (p *VercelPlugin) SetGlobalConfig(data map[string]any) error {
 	if err := mapstructure.Decode(data, &cfg); err != nil {
 		return err
 	}
+	if err := cfg.validate(); err != nil {
+		return err
+	}
 	p.globalConfig = &cfg
 	p.enabled = true
 
@@ -70,6 +73,9 @@ func (p *VercelPlugin) SetSiteConfig(site string, data map[string]any) error {
 	if err := mapstructure.Decode(data, &cfg); err != nil {
 		return err
 	}
+	if err := cfg.validate(); err != nil {
+		return err
+	}
 	p.siteConfigs[site] = &cfg
 	p.enabled = true
 	return nil
@@ -79,6 +85,9 @@ func (p *VercelPlugin) SetSiteConfig(site string, data map[string]any) error {
 func (p *VercelPlugin) SetSiteComponentConfig(site string, component string, data map[string]any) error {
 	cfg := NewVercelConfig()
 	if err := mapstructure.Decode(data, &cfg); err != nil {
+		return err
+	}
+	if err := cfg.validate(); err != nil {
 		return err
 	}
 	if p.siteComponentConfigs == nil {
@@ -98,7 +107,10 @@ func (p *VercelPlugin) RenderTerraformStateBackend(site string) (string, error) 
 }
 
 func (p *VercelPlugin) RenderTerraformProviders(site string) (string, error) {
-	cfg := p.getConfig(site, "")
+	cfg, err := p.getConfig(site, "")
+	if err != nil {
+		return "", err
+	}
 
 	if cfg == nil {
 		return "", nil
@@ -137,7 +149,7 @@ func (p *VercelPlugin) getSiteConfig(site string) (*VercelConfig, error) {
 	return cfg, nil
 }
 
-func (p *VercelPlugin) getConfig(site string, component string) *VercelConfig {
+func (p *VercelPlugin) getConfig(site string, component string) (*VercelConfig, error) {
 	cfg, err := p.getComponentConfig(site, component)
 	if err != nil {
 		cfg, err = p.getSiteConfig(site)
@@ -168,11 +180,18 @@ func (p *VercelPlugin) getConfig(site string, component string) *VercelConfig {
 		cfg.ProjectConfig.ManualProductionDeployment = &defaultFalse
 	}
 
-	return cfg
+	if err := cfg.validate(); err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
 }
 
 func (p *VercelPlugin) RenderTerraformResources(site string) (string, error) {
-	cfg := p.getConfig(site, "")
+	cfg, err := p.getConfig(site, "")
+	if err != nil {
+		return "", err
+	}
 
 	resourceTemplate := `
 		provider "vercel" {
@@ -185,7 +204,10 @@ func (p *VercelPlugin) RenderTerraformResources(site string) (string, error) {
 }
 
 func (p *VercelPlugin) RenderTerraformComponent(site string, component string) (*schema.ComponentSchema, error) {
-	cfg := p.getConfig(site, component)
+	cfg, err := p.getConfig(site, component)
+	if err != nil {
+		return nil, err
+	}
 	if cfg == nil {
 		return nil, nil
 	}
