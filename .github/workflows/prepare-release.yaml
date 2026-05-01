@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Prepare release
-        uses: labd/changie-release-action@v0.6.0
+        uses: labd/changie-release-action@v0.6.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           release-workflow: release.yaml
