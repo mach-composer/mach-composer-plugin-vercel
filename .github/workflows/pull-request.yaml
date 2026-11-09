@@ -31,7 +31,7 @@ jobs:
 
       - name: Has changes file
         if: github.actor != 'dependabot[bot]'
-        uses: mach-composer/check-changie-changes-action@7a4054d1842bb867a0a2c459f154f821e7a50cc2 # v0.0.1
+        uses: mach-composer/check-changie-changes-action@c1d0e9c3a003b28ba0646dea0dd6f73f2a5637ab # v0.0.3
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
